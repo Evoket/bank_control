@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Evoket Bank Control — Exchange Manager v2.6</title>
+    <style>
+        /* --- CSS: Variáveis e Reset --- */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #bb86fc;
+            --green: #03dac6;
+            --green-btn: #2e7d32;
+            --red: #cf6679;
+            --red-text: #ff5252;
+            --red-btn: #c62828;
+            --border-radius: 8px;
+            --transition: 0.2s;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            font-size: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 80px; /* Espaço para footer */
+            flex: 1;
+        }
+
+        .hidden { display: none !important; }
+        
+        h1, h2, h3 { text-align: center; margin-bottom: 1rem; }
+        h1 { color: var(--accent-color); font-size: 1.4rem; }
+        h2 { font-size: 1.2rem; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        h3 { font-size: 1rem; color: #aaa; margin-bottom: 15px; }
+        
+        /* Logo e Header Home */
+        .brand-header { text-align: center; margin-bottom: 10px; }
+        .brand-logo { width: 90px; height: auto; display: block; margin: 0 auto 10px auto; }
+        .quote-text {
+            text-align: center;
+            font-style: italic;
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+            padding: 0 10px;
+            line-height: 1.4;
+        }
+
+        /* Estilos Específicos Ciclos */
+        .header-flex {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 1rem;
+        }
+        .header-flex h2 { border: none; padding: 0; margin: 0; }
+        
+        .btn-help {
+            background: transparent;
+            border: 1px solid #666;
+            color: #aaa;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        .btn-help:hover { border-color: var(--accent-color); color: var(--accent-color); }
+
+        .cycle-quote {
+            text-align: center;
+            font-style: italic;
+            color: #777;
+            font-size: 0.9rem;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            padding: 0 10px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* --- Forms & Inputs --- */
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        
+        input[type="text"], input[type="tel"], select {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            background: #2c2c2c;
+            border: 1px solid #444;
+            color: white;
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        input:focus, select:focus { outline: 2px solid var(--accent-color); border-color: transparent; }
+
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .checkbox-wrapper input { width: auto; margin: 0; }
+
+        /* --- Botões --- */
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .btn-primary { background-color: var(--accent-color); color: #000; }
+        .btn-green { background-color: var(--green-btn); }
+        .btn-red { background-color: var(--red-btn); }
+        .btn-outline { background: transparent; border: 1px solid var(--text-color); }
+        .btn-small { padding: 8px; font-size: 0.85rem; margin-top: 5px; }
+
+        .btn-action-final {
+            background-color: #ff9800;
+            color: #000;
+            margin-top: 20px;
+            border: 2px solid #f57c00;
+        }
+
+        /* --- Resumo Header --- */
+        #global-summary {
+            background: #252525;
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            border-bottom: 1px solid #333;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .summary-values { display: flex; flex-direction: column; align-items: flex-end; }
+        .val-positive { color: var(--green); }
+        .val-negative { color: var(--red); }
+
+        /* --- Cards de Operação --- */
+        .op-card { border: 1px solid #333; padding: 15px; margin-bottom: 15px; border-radius: var(--border-radius); position: relative; }
+        .op-actions { display: flex; gap: 10px; margin-top: 10px; }
+        
+        .limit-alert {
+            font-size: 0.85rem;
+            color: var(--red-text);
+            margin-top: -10px;
+            margin-bottom: 10px;
+            display: block;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .meta-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #444;
+        }
+        .meta-item strong { display: block; font-size: 1.1rem; margin-top: 4px; }
+
+        /* --- Alertas de Stop Loss --- */
+        .stop-alert-box {
+            background-color: rgba(198, 40, 40, 0.2);
+            border: 1px solid var(--red-btn);
+            color: var(--red-text);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        /* --- Modais --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-box {
+            background: #252525;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+            border: 1px solid #444;
+        }
+        .modal-box h3 { margin-bottom: 15px; }
+        .modal-box p {
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            color: #fff;
+        }
+        .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+        .modal-actions button { margin: 0; }
+
+        /* Lista Resumo */
+        .summary-list {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 20px;
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .summary-list li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        .summary-list li:last-child { border-bottom: none; margin-bottom: 0; }
+
+        /* --- Rodapé --- */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.8rem;
+            color: #777;
+            border-top: 1px solid #333;
+            margin-top: auto;
+        }
+        footer a { color: var(--accent-color); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <header id="global-summary" class="hidden">
+        <div>
+            <span id="summary-day-name" style="font-weight: bold; display:block;">Dia 01</span>
+            <button onclick="app.finishDay()" style="width: auto; padding: 4px 8px; font-size: 0.75rem; margin: 5px 0 0 0;" class="btn-outline">🗓️ Finalizar</button>
+        </div>
+        <div class="summary-values">
+            <span style="font-size: 0.8rem; opacity: 0.8;">Banca Atual</span>
+            <span id="summary-bank" style="font-size: 1.1rem; font-weight: bold;">R$ 0,00</span>
+            <button onclick="app.showSessionSummary()" style="width: auto; padding: 4px 10px; font-size: 0.75rem; margin-top: 5px;" class="btn-outline">📊 RESUMO</button>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <section id="view-home">
+            <div class="card">
+                <div class="brand-header">
+                    <img src="logo-evoket.png" alt="Evoket Logo" class="brand-logo">
+                    <h1>Evoket Bank Control</h1>
+                    <p style="font-size: 0.9rem; color: #888;">Exchange Manager</p>
+                </div>
+
+                
+                <p id="motivational-quote" class="quote-text"></p>
+                
+                <label>Nome do Dia / Sessão</label>
+                <input type="text" id="input-day-name" placeholder="Ex: Sessão Manhã">
+
+                <label>Banca Inicial</label>
+                <input type="tel" id="input-start-bank" placeholder="R$ 0,00" oninput="app.maskCurrency(this)">
+                
+                <button class="btn-small btn-outline" onclick="app.loadLastSessionData()">📂 Carregar banca anterior</button>
+           
+                <div class="checkbox-wrapper" style="margin-top: 20px;">
+                    <input type="checkbox" id="input-commission" checked>
+                    <label for="input-commission" style="margin:0;">Cobrar comissão (3.9% em Green)</label>
+                </div>
+
+                <button class="btn-primary" onclick="app.startSession()">INICIAR GESTÃO</button>
+            </div>
+        </section>
+
+        <section id="view-start" class="hidden">
+            <div class="header-flex">
+                <h2>Ciclo START</h2>
+                <button class="btn-help" onclick="app.openStartHelp()">?</button>
+            </div>
+            <p id="start-quote-display" class="cycle-quote"></p>
+
+            <div class="card">
+                <h3>Definição de Stake</h3>
+                <label>Perfil de Risco</label>
+                <select id="start-stake-select" onchange="app.calcStartStake()">
+                    <option value="0.05">5% (Conservador)</option>
+                    <option value="0.10">10% (Moderado)</option>
+                    <option value="0.20">20% (Agressivo)</option>
+                </select>
+                <p>Stake calculada: <strong id="start-stake-display" style="color: var(--accent-color)">0.00</strong></p>
+            </div>
+            
+            <div class="card">
+                <h3>Entradas Recomendadas</h3>
+                <ul style="list-style: none; padding: 0; font-size: 0.9rem; line-height: 1.8;">
+                    <li>ODD 1.01 – 1.05: <strong>30% (<span id="rec-val-30" style="color:var(--green)">R$ 0,00</span>)</strong></li>
+                    <li>ODD 1.06 – 1.09: <strong>20% (<span id="rec-val-20" style="color:var(--green)">R$ 0,00</span>)</strong></li>
+                    <li>ODD + de 1.10: &nbsp;&nbsp;<strong>10% (<span id="rec-val-10" style="color:var(--green)">R$ 0,00</span>)</strong></li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Resultado</h3>
+                <label>Lucro ou prejuizo</label>
+                <input type="tel" id="start-result-val" placeholder="R$ 0,00" oninput="app.maskCurrency(this)">
+                <div class="op-actions">
+                    <button class="btn-green" onclick="app.handleStartResult('GREEN')">GREEN ✅</button>
+                    <button class="btn-red" onclick="app.handleStartResult('RED')">RED ❌</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-cycle2-config" class="hidden">
+            <h2>Configurar Ciclo Principal</h2>
+            <div class="card">
+                <p style="text-align: center; color: var(--red-text); margin-bottom: 15px; font-weight: bold;">⚠️ JOGO FORA DO PADRÃO</p>
+                <label>Número de entradas</label>
+                <select id="c2-cards-count">
+                    <option value="2">2 Cards</option>
+                    <option value="3">3 Cards</option>
+                    <option value="4">4 Cards</option>
+                    <option value="5" selected>5 Cards</option>
+                    <option value="6">6 Cards</option>
+                </select>
+                <label>% sobre a Stake</label>
+                <select id="c2-stake-pct">
+                    <option value="0.25">25% da Stake</option>
+                    <option value="0.30">30% da Stake</option>
+                    <option value="0.35">35% da Stake</option>
+                </select>
+                <p style="font-size: 0.8rem; color: #888; text-align: center; margin-top: 5px;">
+                    O valor da entrada será calculado sobre sua Stake Base definida.
+                </p>
+                <button class="btn-primary" style="margin-top: 15px;" onclick="app.initCycle2()">Entrar no Ciclo</button>
+            </div>
+        </section>
+
+        <section id="view-cycle2" class="hidden">
+            <h2>Ciclo Principal</h2>
+            <div class="card">
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <span style="font-size: 0.9rem; color: #aaa;">Total Alocado no Ciclo</span><br>
+                    <strong id="c2-allocated" style="font-size: 1.3rem;">R$ 0,00</strong>
+                </div>
+                <div class="meta-card">
+                    <div class="meta-item">
+                        <span style="color: var(--green);">Meta (+5%)</span>
+                        <strong id="c2-target-win">R$ 0,00</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span style="color: var(--red-text);">Stop (-15%)</span>
+                        <strong id="c2-target-loss">R$ 0,00</strong>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 10px; font-size: 0.9rem;">
+                    Resultado Atual: <strong id="c2-current-pl">R$ 0,00</strong>
+                </p>
+            </div>
+            <div id="c2-stop-message" class="stop-alert-box hidden">
+                O STOP LOSS do Ciclo 2 foi atingido.<br>
+                É recomendado seguir para o Ciclo Final.
+            </div>
+            <div id="c2-cards-container"></div>
+            <div id="c2-manual-next" class="hidden" style="margin-top: 20px;">
+                <button class="btn-action-final" onclick="app.switchView('view-final-config')">
+                    ➡️ Ir para Ciclo Final
+                </button>
+            </div>
+        </section>
+
+        <section id="view-final-config" class="hidden">
+            <h2>⚠️ Proteção de Banca</h2>
+            <div class="card" style="border: 1px solid var(--red-btn);">
+                <p style="text-align: center; margin-bottom: 15px;">Você encerrou o ciclo principal.<br>Vamos para a recuperação.</p>
+                <label>Stake de Recuperação</label>
+                <select id="cf-stake-pct">
+                    <option value="0.75">75% da Stake Base</option>
+                    <option value="0.80">80% da Stake Base</option>
+                    <option value="0.85">85% da Stake Base</option>
+                </select>
+                <button class="btn-primary" style="margin-top: 15px;" onclick="app.initFinalCycle()">Iniciar Recuperação</button>
+            </div>
+        </section>
+
+        <section id="view-final" class="hidden">
+            <div class="header-flex">
+                <h2>Ciclo Final (Recuperação)</h2>
+                <button class="btn-help" onclick="app.openFinalHelp()">?</button>
+            </div>
+            
+            <p id="final-quote-display" class="cycle-quote"></p>
+
+            <div class="card">
+                <div style="text-align: center; margin-bottom: 10px;">
+                    <span style="font-size: 0.9rem; color: #aaa;">Total Alocado no Ciclo</span><br>
+                    <strong id="cf-allocated" style="font-size: 1.3rem;">R$ 0,00</strong>
+                </div>
+                <div class="meta-card">
+                    <div class="meta-item">
+                        <span style="color: var(--green);">Meta (+10%)</span>
+                        <strong id="cf-target-win">R$ 0,00</strong>
+                    </div>
+                    <div class="meta-item">
+                        <span style="color: var(--red-text);">Stop (-25%)</span>
+                        <strong id="cf-target-loss">R$ 0,00</strong>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 10px; font-size: 0.9rem;">
+                    Resultado Atual: <strong id="cf-current-pl">R$ 0,00</strong>
+                </p>
+            </div>
+            <div id="cf-cards-container"></div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>Desenvolvido por <a href="https://evoketstudio.com.br/" target="_blank">Evoket Studios</a></p>
+        <p style="margin-top: 5px; font-size: 0.7rem; opacity: 0.6;">v2.6 - Stable</p>
+    </footer>
+
+    <div id="modal-session-summary" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 style="color: var(--accent-color);">📊 Resumo da Sessão</h3>
+            <ul class="summary-list">
+                <li><span>Banca Inicial:</span><strong id="sum-start-bank">R$ 0,00</strong></li>
+                <li><span>Banca Atual:</span><strong id="sum-curr-bank">R$ 0,00</strong></li>
+            </ul>
+            <ul class="summary-list">
+                <li><span>Entradas:</span><strong id="sum-total-entries">0</strong></li>
+                <li><span style="color: var(--green);">Greens:</span><strong id="sum-total-greens">0</strong></li>
+                <li><span style="color: var(--red-text);">Reds:</span><strong id="sum-total-reds">0</strong></li>
+            </ul>
+            <div style="background: #222; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 20px;">
+                <span style="display:block; font-size: 0.9rem; color: #aaa; margin-bottom: 5px;">Resultado Final</span>
+                <strong id="sum-result-val" style="font-size: 1.4rem; display:block;">R$ 0,00</strong>
+                <span id="sum-result-pct" style="font-size: 1rem; display:block;">0,00%</span>
+            </div>
+            <div class="modal-actions" style="justify-content: center;">
+                <button class="btn-outline" onclick="app.closeSessionSummary()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-start-help" class="modal-overlay hidden" onclick="if(event.target === this) app.closeStartHelp()">
+        <div class="modal-box">
+            <h3 style="color: var(--accent-color);">Sobre o Ciclo START</h3>
+            <div style="text-align: left; font-size: 0.95rem; color: #ccc; margin-bottom: 25px;">
+                <ul style="list-style: disc; padding-left: 20px; line-height: 1.6;">
+                    <li>Esta fase serve para identificar jogos fora do padrão ideal.</li>
+                    <li>Não é obrigatório realizar uma entrada.</li>
+                    <li>Observar também é uma decisão estratégica.</li>
+                    <li>Se não sentir confiança, não force a entrada.</li>
+                </ul>
+            </div>
+            <button class="btn-primary" onclick="app.closeStartHelp()">OK, ENTENDIDO</button>
+        </div>
+    </div>
+
+    <div id="modal-final-help" class="modal-overlay hidden" onclick="if(event.target === this) app.closeFinalHelp()">
+        <div class="modal-box">
+            <h3 style="color: var(--accent-color);">Sobre o Ciclo Final</h3>
+            <div style="text-align: left; font-size: 0.95rem; color: #ccc; margin-bottom: 25px;">
+                <p>O objetivo do Ciclo Final não é gerar lucro, mas sim minimizar o prejuízo e proteger a banca.</p>
+                <p style="margin-top:10px;">Use este ciclo com calma, foco e disciplina.</p>
+            </div>
+            <button class="btn-primary" onclick="app.closeFinalHelp()">OK, ENTENDIDO</button>
+        </div>
+    </div>
+
+    <div id="modal-final-decision" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 style="color: #ff9800;">⚠️ Ciclo Final Concluído</h3>
+            <p>Todas as entradas do Ciclo Final foram preenchidas e a meta não foi atingida.</p>
+            <p>Deseja permanecer neste ciclo ou retornar ao Ciclo Principal?</p>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="app.decisionStayFinal()">🔁 Permanecer no Ciclo Final</button>
+                <button class="btn-outline" onclick="app.decisionGoBackToC2()">⬅️ Voltar ao Ciclo Principal</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            data: {
+                dayName: '',
+                startBank: 0,
+                currentBank: 0,
+                currentBaseStake: 0, 
+                commissionActive: true,
+                cycleAllocated: 0,
+                cyclePL: 0,
+                stopButtonVisible: false,
+                stats: { entries: 0, greens: 0, reds: 0 }
+            },
+
+            quotes: [
+                "Tenha um ótimo dia de gols. Seu foco é 100% na gestão.",
+                "Resultado é consequência. Gestão é prioridade.",
+                "Mantenha o emocional no método, não no resultado.",
+                "Disciplina hoje, consistência no longo prazo."
+            ],
+
+            startQuotes: [
+                "Observe antes de agir. Nem todo jogo exige uma entrada.",
+                "Disciplina começa na seleção, não na execução.",
+                "O melhor trade também é aquele que você não faz.",
+                "Gestão começa no não."
+            ],
+
+            finalQuotes: [
+                "Recuperar não é ganhar, é sobreviver para o próximo dia.",
+                "Aqui o foco não é lucro, é controle.",
+                "Disciplina no Ciclo Final é o que mantém você no jogo.",
+                "Menos emoção agora significa mais oportunidades amanhã."
+            ],
+
+            // --- UTILS ---
+            maskCurrency: function(input) {
+                let value = input.value.replace(/\D/g, "");
+                value = (Number(value) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+                input.value = value;
+            },
+   
+            getMoneyValue: function(inputOrId) {
+                let el = (typeof inputOrId === 'string') ? document.getElementById(inputOrId) : inputOrId;
+                if(!el || !el.value) return 0;
+                let clean = el.value.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+                return parseFloat(clean) || 0;
+            },
+
+            formatMoney: function(val) {
+                return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            },
+
+            // --- Core ---
+            init: function() {
+                this.loadFromStorage();
+                this.displayRandomQuote();
+            },
+
+            displayRandomQuote: function() {
+                const r = Math.floor(Math.random() * this.quotes.length);
+                const el = document.getElementById('motivational-quote');
+                if(el) el.innerText = this.quotes[r];
+            },
+
+            displayStartQuote: function() {
+                const r = Math.floor(Math.random() * this.startQuotes.length);
+                const el = document.getElementById('start-quote-display');
+                if(el) el.innerText = this.startQuotes[r];
+            },
+
+            displayFinalQuote: function() {
+                const r = Math.floor(Math.random() * this.finalQuotes.length);
+                const el = document.getElementById('final-quote-display');
+                if(el) el.innerText = this.finalQuotes[r];
+            },
+
+            openStartHelp: function() {
+                document.getElementById('modal-start-help').classList.remove('hidden');
+            },
+            closeStartHelp: function() {
+                document.getElementById('modal-start-help').classList.add('hidden');
+            },
+
+            openFinalHelp: function() {
+                document.getElementById('modal-final-help').classList.remove('hidden');
+            },
+            closeFinalHelp: function() {
+                document.getElementById('modal-final-help').classList.add('hidden');
+            },
+
+            loadLastSessionData: function() {
+                const lastBank = localStorage.getItem('evoket_last_bank');
+                const lastName = localStorage.getItem('evoket_last_name');
+                if(lastBank) {
+                    const val = parseFloat(lastBank);
+                    const elBank = document.getElementById('input-start-bank');
+                    const elName = document.getElementById('input-day-name');
+                    elBank.value = Math.round(val * 100).toString();
+                    this.maskCurrency(elBank);
+                    if(lastName) elName.value = lastName;
+                } else {
+                    alert("Nenhum registro anterior encontrado.");
+                }
+            },
+
+            startSession: function() {
+                const name = document.getElementById('input-day-name').value;
+                const bank = this.getMoneyValue('input-start-bank');
+                const commission = document.getElementById('input-commission').checked;
+                if(!name || bank <= 0) return alert("Preencha o nome e a banca inicial.");
+                this.data.dayName = name;
+                this.data.startBank = bank;
+                this.data.currentBank = bank;
+                this.data.commissionActive = commission;
+                this.data.stats = { entries: 0, greens: 0, reds: 0 };
+                this.saveToStorage();
+                this.updateHeader();
+                this.switchView('view-start');
+                this.calcStartStake();
+            },
+
+            switchView: function(viewId) {
+                document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+                document.getElementById(viewId).classList.remove('hidden');
+                const header = document.getElementById('global-summary');
+                if(viewId === 'view-home') header.classList.add('hidden');
+                else header.classList.remove('hidden');
+                if(viewId === 'view-start') this.displayStartQuote();
+                if(viewId === 'view-final') this.displayFinalQuote();
+                window.scrollTo(0,0);
+            },
+
+            updateHeader: function() {
+                document.getElementById('summary-day-name').innerText = this.data.dayName;
+                document.getElementById('summary-bank').innerText = this.formatMoney(this.data.currentBank);
+            },
+
+            showSessionSummary: function() {
+                document.getElementById('sum-start-bank').innerText = this.formatMoney(this.data.startBank);
+                document.getElementById('sum-curr-bank').innerText = this.formatMoney(this.data.currentBank);
+                document.getElementById('sum-total-entries').innerText = this.data.stats.entries;
+                document.getElementById('sum-total-greens').innerText = this.data.stats.greens;
+                document.getElementById('sum-total-reds').innerText = this.data.stats.reds;
+                const diff = this.data.currentBank - this.data.startBank;
+                const diffPct = (this.data.startBank > 0) ? (diff / this.data.startBank) * 100 : 0;
+                const resValEl = document.getElementById('sum-result-val');
+                const resPctEl = document.getElementById('sum-result-pct');
+                resValEl.innerText = (diff >= 0 ? "+" : "") + this.formatMoney(diff);
+                resPctEl.innerText = (diff >= 0 ? "+" : "") + diffPct.toFixed(2) + "%";
+                const color = diff >= 0 ? "var(--green)" : "var(--red-text)";
+                resValEl.style.color = color;
+                resPctEl.style.color = color;
+                document.getElementById('modal-session-summary').classList.remove('hidden');
+            },
+            closeSessionSummary: function() {
+                document.getElementById('modal-session-summary').classList.add('hidden');
+            },
+
+            calcStartStake: function() {
+                const pct = parseFloat(document.getElementById('start-stake-select').value);
+                this.data.currentBaseStake = this.data.currentBank * pct;
+                document.getElementById('start-stake-display').innerText = this.formatMoney(this.data.currentBaseStake);
+                this.updateRecommendedValues();
+            },
+
+            updateRecommendedValues: function() {
+                const stake = this.data.currentBaseStake;
+                document.getElementById('rec-val-30').innerText = this.formatMoney(stake * 0.30);
+                document.getElementById('rec-val-20').innerText = this.formatMoney(stake * 0.20);
+                document.getElementById('rec-val-10').innerText = this.formatMoney(stake * 0.10);
+            },
+
+            handleStartResult: function(type) {
+                let val = this.getMoneyValue('start-result-val');
+                if(val <= 0) return alert("Digite o valor do resultado.");
+                this.data.stats.entries++;
+                if(type === 'GREEN') {
+                    this.data.stats.greens++;
+                    if(this.data.commissionActive) val = val * 0.961;
+                    this.updateBank(val);
+                    alert("Green registrado! Continue no padrão.");
+                    document.getElementById('start-result-val').value = '';
+                    this.calcStartStake();
+                } else {
+                    this.data.stats.reds++;
+                    this.updateBank(-val);
+                    document.getElementById('start-result-val').value = '';
+                    this.switchView('view-cycle2-config');
+                }
+            },
+
+            initCycle2: function() {
+                const cardsCount = parseInt(document.getElementById('c2-cards-count').value);
+                const stakePct = parseFloat(document.getElementById('c2-stake-pct').value);
+                const entryValue = this.data.currentBaseStake * stakePct;
+                const totalAllocated = entryValue * cardsCount;
+                this.data.cycleAllocated = totalAllocated;
+                this.data.cyclePL = 0;
+                this.data.stopButtonVisible = false;
+                document.getElementById('c2-allocated').innerText = this.formatMoney(totalAllocated);
+                document.getElementById('c2-target-win').innerText = "+" + this.formatMoney(totalAllocated * 0.05);
+                document.getElementById('c2-target-loss').innerText = "-" + this.formatMoney(totalAllocated * 0.15);
+                document.getElementById('c2-stop-message').classList.add('hidden');
+                document.getElementById('c2-manual-next').classList.add('hidden');
+                const container = document.getElementById('c2-cards-container');
+                container.innerHTML = '';
+                const maxRed = entryValue * 0.30;
+                for(let i=0; i<cardsCount; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'card op-card';
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong>Operação ${i+1}</strong>
+                            <span>Entrada: <strong>${this.formatMoney(entryValue)}</strong></span>
+                        </div>
+                        <span class="limit-alert">Limite de Red (30%): ${this.formatMoney(maxRed)}</span>
+                        <input type="tel" class="op-input" placeholder="R$ 0,00" id="c2-input-${i}" oninput="app.maskCurrency(this)">
+                        <div class="op-actions">
+                            <button class="btn-green" onclick="app.processCard('c2', ${i}, 'GREEN', ${entryValue}, ${maxRed})">GREEN</button>
+                            <button class="btn-red" onclick="app.processCard('c2', ${i}, 'RED', ${entryValue}, ${maxRed})">RED</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                }
+                this.updateCycleStats('c2');
+                this.switchView('view-cycle2');
+            },
+
+            initFinalCycle: function() {
+                const stakePct = parseFloat(document.getElementById('cf-stake-pct').value);
+                const entryValue = this.data.currentBaseStake * stakePct;
+                const maxRed = entryValue * 0.30;
+                this.data.cycleAllocated = entryValue * 2; 
+                this.data.cyclePL = 0;
+                document.getElementById('cf-allocated').innerText = this.formatMoney(this.data.cycleAllocated);
+                document.getElementById('cf-target-win').innerText = "+" + this.formatMoney(this.data.cycleAllocated * 0.10);
+                document.getElementById('cf-target-loss').innerText = "-" + this.formatMoney(this.data.cycleAllocated * 0.25);
+                const container = document.getElementById('cf-cards-container');
+                container.innerHTML = '';
+                for(let i=0; i<2; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'card op-card';
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong>Recuperação ${i+1}</strong>
+                            <span>Entrada: <strong>${this.formatMoney(entryValue)}</strong></span>
+                        </div>
+                        <span class="limit-alert">Limite de Red (30%): ${this.formatMoney(maxRed)}</span>
+                        <input type="tel" class="op-input" placeholder="R$ 0,00" id="cf-input-${i}" oninput="app.maskCurrency(this)">
+                        <div class="op-actions">
+                            <button class="btn-green" onclick="app.processCard('cf', ${i}, 'GREEN', ${entryValue}, ${maxRed})">GREEN</button>
+                            <button class="btn-red" onclick="app.processCard('cf', ${i}, 'RED', ${entryValue}, ${maxRed})">RED</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                }
+                this.updateCycleStats('cf');
+                this.switchView('view-final');
+            },
+
+            processCard: function(context, index, type, entryRef, limitRedRef) {
+                const inputId = `${context}-input-${index}`;
+                let val = this.getMoneyValue(inputId);
+                if(val <= 0) return alert("Informe o valor.");
+                this.executeCard(context, index, type, val, inputId);
+            },
+
+            executeCard: function(context, index, type, val, inputId) {
+                this.data.stats.entries++;
+                if(type === 'GREEN') {
+                    this.data.stats.greens++;
+                    if(this.data.commissionActive) val = val * 0.961;
+                    this.updateBank(val);
+                    this.data.cyclePL += val;
+                } else {
+                    this.data.stats.reds++;
+                    this.updateBank(-val);
+                    this.data.cyclePL -= val;
+                }
+                const btnGroup = document.getElementById(inputId).nextElementSibling;
+                btnGroup.innerHTML = `<div style="text-align:center; padding:10px; border:1px solid #444; border-radius:5px; width:100%;">
+                    Resultado: <strong style="color: ${type==='GREEN'?'var(--green)':'var(--red-text)'}">
+                    ${type==='GREEN'?'+':'-'} ${this.formatMoney(val)}
+                    </strong></div>`;
+                document.getElementById(inputId).disabled = true;
+                document.getElementById(inputId).classList.add('card-filled');
+                this.updateCycleStats(context);
+                this.checkCycleRules(context);
+            },
+
+            updateCycleStats: function(context) {
+                const pl = this.data.cyclePL;
+                const elPL = document.getElementById(`${context}-current-pl`);
+                if(elPL) {
+                    elPL.innerText = (pl >= 0 ? "+" : "") + this.formatMoney(pl);
+                    elPL.style.color = pl >= 0 ? "var(--green)" : "var(--red-text)";
+                }
+            },
+
+            checkCycleRules: function(context) {
+                const alloc = this.data.cycleAllocated;
+                const pl = this.data.cyclePL;
+                
+                if(context === 'c2') {
+                    if(pl >= (alloc * 0.05)) {
+                        setTimeout(() => {
+                            alert("🏆 META DO CICLO ATINGIDA (+5%)!\nVoltando para busca de padrão.");
+                            this.switchView('view-start');
+                            this.calcStartStake();
+                        }, 300);
+                        return;
+                    }
+                    const stopLimit = -(alloc * 0.15);
+                    const elMsg = document.getElementById('c2-stop-message');
+                    const elBtn = document.getElementById('c2-manual-next');
+                    if (pl <= stopLimit) {
+                        elMsg.classList.remove('hidden');
+                        elBtn.classList.remove('hidden'); 
+                        this.data.stopButtonVisible = true;
+                    } else {
+                        elMsg.classList.add('hidden');
+                        if(this.data.stopButtonVisible) elBtn.classList.remove('hidden');
+                        else elBtn.classList.add('hidden');
+                    }
+                    const activeBtns = document.querySelectorAll('#c2-cards-container button');
+                    if(activeBtns.length === 0 && pl > stopLimit) {
+                        setTimeout(() => {
+                            alert("Ciclo finalizado sem atingir limites.\nReiniciando ciclo...");
+                            this.initCycle2();
+                        }, 500);
+                    }
+                } else if(context === 'cf') {
+                    const winLimit = alloc * 0.10;
+                    const stopLimit = -(alloc * 0.25);
+
+                    if(pl >= winLimit) { 
+                        setTimeout(() => {
+                            alert("Recuperação concluída! Voltando ao Ciclo Principal.");
+                            this.switchView('view-cycle2-config');
+                        }, 300);
+                        return;
+                    } 
+                    
+                    if(pl <= stopLimit) { 
+                        setTimeout(() => {
+                            if(confirm("Limite de perda diária atingido. Finalizar dia?")) this.finishDay();
+                            else this.initFinalCycle();
+                        }, 300);
+                        return;
+                    }
+
+                    // Verifica se todas as entradas do Ciclo Final foram preenchidas
+                    const filledInputs = document.querySelectorAll('#cf-cards-container input.card-filled');
+                    if(filledInputs.length === 2) {
+                        setTimeout(() => {
+                            document.getElementById('modal-final-decision').classList.remove('hidden');
+                        }, 500);
+                    }
+                }
+            },
+
+            decisionStayFinal: function() {
+                document.getElementById('modal-final-decision').classList.add('hidden');
+                this.initFinalCycle();
+            },
+
+            decisionGoBackToC2: function() {
+                document.getElementById('modal-final-decision').classList.add('hidden');
+                this.switchView('view-cycle2-config');
+            },
+
+            updateBank: function(val) {
+                this.data.currentBank += val;
+                if(this.data.currentBank < 0) this.data.currentBank = 0;
+                this.updateHeader();
+                this.saveToStorage();
+            },
+
+            finishDay: function() {
+                if(!confirm("Tem certeza que deseja finalizar o dia?")) return;
+                localStorage.setItem('evoket_last_bank', this.data.currentBank.toFixed(2));
+                localStorage.setItem('evoket_last_name', this.data.dayName);
+                localStorage.removeItem('evoket_session');
+                location.reload();
+            },
+
+            saveToStorage: function() {
+                localStorage.setItem('evoket_session', JSON.stringify(this.data));
+            },
+
+            loadFromStorage: function() {
+                const session = localStorage.getItem('evoket_session');
+                if(session) {
+                    this.data = JSON.parse(session);
+                    if(!this.data.stats) this.data.stats = { entries: 0, greens: 0, reds: 0 };
+                    this.updateHeader();
+                    this.switchView('view-start'); 
+                    this.calcStartStake();
+                }
+            }
+        };
+        app.init();
+    </script>
+</body>
+</html>
