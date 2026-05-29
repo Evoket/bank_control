@@ -362,14 +362,35 @@
 
         /* ─── SECTION HEADERS ─── */
         .section-head {
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .section-head-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .section-eyebrow {
+            font-size: 0.65rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
+            gap: 5px;
         }
-        .section-head-left { display: flex; align-items: center; gap: 10px; }
+        .eyebrow-blue  { color: var(--accent); }
+        .eyebrow-red   { color: var(--red); }
+        .eyebrow-gold  { color: var(--gold); }
+        .eyebrow-muted { color: var(--muted); }
+        .section-title { font-size: 1.25rem; font-weight: 800; line-height: 1.1; }
+
+        /* keep old badge classes for anything else that uses them */
         .section-badge {
             font-size: 0.65rem;
             font-weight: 800;
@@ -380,9 +401,8 @@
             border: 1px solid;
         }
         .badge-blue { color: var(--accent); border-color: rgba(91,138,245,0.35); background: rgba(91,138,245,0.08); }
-        .badge-red { color: var(--red); border-color: rgba(245,91,91,0.35); background: rgba(245,91,91,0.08); }
-        .badge-gold { color: var(--gold); border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); }
-        .section-title { font-size: 1.1rem; font-weight: 800; }
+        .badge-red  { color: var(--red);    border-color: rgba(245,91,91,0.35);  background: rgba(245,91,91,0.08); }
+        .badge-gold { color: var(--gold);   border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); }
 
         .btn-help-circle {
             width: 26px; height: 26px;
@@ -658,8 +678,8 @@
     <section id="view-start" class="hidden">
         <div class="section-head">
             <div class="section-head-left">
-                <span class="section-badge badge-blue">Ciclo START</span>
-                <span class="section-title">Padrão</span>
+                <div class="section-eyebrow eyebrow-blue">⬡ Ciclo START</div>
+                <div class="section-title">Padrão</div>
             </div>
             <button class="btn-help-circle" onclick="app.openModal('modal-start-help')">?</button>
         </div>
@@ -736,8 +756,8 @@
     <section id="view-cycle2-config" class="hidden">
         <div class="section-head">
             <div class="section-head-left">
-                <span class="section-badge badge-red">⚠ Fora do Padrão</span>
-                <span class="section-title">Ciclo Principal</span>
+                <div class="section-eyebrow eyebrow-red">⚠ Fora do Padrão</div>
+                <div class="section-title">Ciclo Principal</div>
             </div>
         </div>
         <div class="card">
@@ -775,8 +795,8 @@
     <section id="view-cycle2" class="hidden">
         <div class="section-head">
             <div class="section-head-left">
-                <span class="section-badge badge-red">Ciclo Principal</span>
-                <span class="section-title">Operações</span>
+                <div class="section-eyebrow eyebrow-red">● Ciclo Principal</div>
+                <div class="section-title">Operações</div>
             </div>
         </div>
 
@@ -823,8 +843,8 @@
     <section id="view-final-config" class="hidden">
         <div class="section-head">
             <div class="section-head-left">
-                <span class="section-badge badge-gold">Recuperação</span>
-                <span class="section-title">Proteção de Banca</span>
+                <div class="section-eyebrow eyebrow-gold">◈ Recuperação</div>
+                <div class="section-title">Proteção de Banca</div>
             </div>
         </div>
         <div class="recovery-banner">
@@ -849,8 +869,8 @@
     <section id="view-final" class="hidden">
         <div class="section-head">
             <div class="section-head-left">
-                <span class="section-badge badge-gold">Ciclo Final</span>
-                <span class="section-title">Recuperação</span>
+                <div class="section-eyebrow eyebrow-gold">◈ Ciclo Final</div>
+                <div class="section-title">Recuperação</div>
             </div>
             <button class="btn-help-circle" onclick="app.openModal('modal-final-help')">?</button>
         </div>
@@ -962,6 +982,80 @@
         </div>
     </div>
 </div>
+
+<!-- ═══ MODAL: CICLO META ATINGIDA ═══ -->
+<div id="modal-meta-atingida" class="modal-overlay hidden">
+    <div class="modal-box" style="text-align: center;">
+        <div class="modal-handle"></div>
+        <div style="font-size: 2.8rem; margin-bottom: 10px; animation: trophy-pop 0.5s cubic-bezier(0.34,1.56,0.64,1);">🏆</div>
+        <div class="modal-title" style="font-size: 1.2rem; color: var(--green);">Meta Atingida!</div>
+        <div id="modal-meta-subtitle" style="font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; line-height: 1.5;"></div>
+        <div id="modal-meta-pl" style="font-family: var(--mono); font-size: 1.5rem; font-weight: 800; color: var(--green); margin: 10px 0 18px;"></div>
+        <div style="height: 1px; background: var(--border); margin-bottom: 16px;"></div>
+        <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5;" id="modal-meta-tip"></div>
+        <div class="modal-actions">
+            <button class="btn-green" id="modal-meta-btn" onclick="">Continuar →</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: CICLO NEUTRO (sem atingir limites) ═══ -->
+<div id="modal-ciclo-neutro" class="modal-overlay hidden">
+    <div class="modal-box" style="text-align: center;">
+        <div class="modal-handle"></div>
+        <div style="font-size: 2.2rem; margin-bottom: 10px;">🔄</div>
+        <div class="modal-title">Ciclo Encerrado</div>
+        <div style="font-size: 0.82rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">
+            Todas as entradas foram preenchidas sem atingir meta ou stop.<br>
+            Reiniciando o ciclo.
+        </div>
+        <div class="modal-actions">
+            <button class="btn-primary" onclick="app.closeModal('modal-ciclo-neutro'); app.initCycle2();">↩ Reiniciar Ciclo</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: STOP LOSS DIÁRIO ═══ -->
+<div id="modal-stop-diario" class="modal-overlay hidden">
+    <div class="modal-box" style="text-align: center;">
+        <div class="modal-handle"></div>
+        <div style="font-size: 2.2rem; margin-bottom: 10px; animation: pulse-red 1.5s infinite;">🛑</div>
+        <div class="modal-title" style="color: var(--red);">Stop Diário Atingido</div>
+        <div style="font-size: 0.82rem; color: var(--muted); margin-bottom: 16px; line-height: 1.6;">
+            O limite de perda do Ciclo Final foi atingido.<br>
+            <strong style="color: var(--text);">Encerre o dia e proteja sua banca.</strong><br>
+            Amanhã é um novo dia.
+        </div>
+        <div style="height: 1px; background: var(--border); margin-bottom: 16px;"></div>
+        <div class="modal-actions">
+            <button class="btn-red" onclick="app.finishDay()">Finalizar o Dia</button>
+            <button class="btn-outline" onclick="app.closeModal('modal-stop-diario'); app.initFinalCycle();">Continuar mesmo assim</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: CAMPO VAZIO ═══ -->
+<div id="modal-campo-vazio" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-campo-vazio')">
+    <div class="modal-box" style="text-align: center;">
+        <div class="modal-handle"></div>
+        <div style="font-size: 1.8rem; margin-bottom: 10px;">✏️</div>
+        <div class="modal-title">Campo vazio</div>
+        <div style="font-size: 0.82rem; color: var(--muted); margin-bottom: 16px;">
+            Informe o valor antes de registrar o resultado.
+        </div>
+        <div class="modal-actions">
+            <button class="btn-primary" onclick="app.closeModal('modal-campo-vazio')">Ok, entendi</button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes trophy-pop {
+    0%   { transform: scale(0.3) rotate(-15deg); opacity: 0; }
+    70%  { transform: scale(1.15) rotate(5deg); }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+</style>
 
 <script>
 const app = {
@@ -1104,7 +1198,7 @@ const app = {
         const name = document.getElementById('input-day-name').value.trim();
         const bank = this.getMoneyValue('input-start-bank');
         const comm = document.getElementById('input-commission').checked;
-        if (!name || bank <= 0) return alert('Preencha o nome e a banca inicial.');
+        if (!name || bank <= 0) return this.openModal('modal-campo-vazio');
         this.data = { ...this.data, dayName: name, startBank: bank, currentBank: bank, commissionActive: comm, stats: { entries: 0, greens: 0, reds: 0 } };
         this.saveToStorage();
         this.updateHeader();
@@ -1114,7 +1208,7 @@ const app = {
     loadLastSessionData() {
         const lb = localStorage.getItem('evoket_last_bank');
         const ln = localStorage.getItem('evoket_last_name');
-        if (!lb) return alert('Nenhum registro anterior encontrado.');
+        if (!lb) return this.openModal('modal-campo-vazio');
         const el = document.getElementById('input-start-bank');
         el.value = Math.round(parseFloat(lb) * 100).toString();
         this.maskCurrency(el);
@@ -1175,7 +1269,7 @@ const app = {
     // ─── START RESULT ───
     handleStartResult(type) {
         let val = this.getMoneyValue('start-result-val');
-        if (val <= 0) return alert('Digite o valor do resultado.');
+        if (val <= 0) return this.openModal('modal-campo-vazio');
         this.data.stats.entries++;
         if (type === 'GREEN') {
             this.data.stats.greens++;
@@ -1256,7 +1350,7 @@ const app = {
 
     processCard(ctx, index, type, entryRef, limitRed) {
         const val = this.getMoneyValue(`${ctx}-input-${index}`);
-        if (val <= 0) return alert('Informe o valor.');
+        if (val <= 0) return this.openModal('modal-campo-vazio');
         this.executeCard(ctx, index, type, val);
     },
 
@@ -1311,9 +1405,18 @@ const app = {
         if (ctx === 'c2') {
             if (pl >= alloc * 0.05) {
                 setTimeout(() => {
-                    alert('🏆 META DO CICLO ATINGIDA (+5%)!\nVoltando para busca de padrão.');
-                    this.switchView('view-start');
-                    this.calcStartStake();
+                    // Show celebration modal
+                    document.getElementById('modal-meta-subtitle').innerText = 'Ciclo Principal concluído com sucesso.\nVoltando para busca de padrão.';
+                    document.getElementById('modal-meta-pl').innerText = '+' + this.fmt(pl);
+                    document.getElementById('modal-meta-tip').innerText = '"Resultado é consequência. Gestão é prioridade."';
+                    const btn = document.getElementById('modal-meta-btn');
+                    btn.textContent = 'Voltar ao Padrão →';
+                    btn.onclick = () => {
+                        this.closeModal('modal-meta-atingida');
+                        this.switchView('view-start');
+                        this.calcStartStake();
+                    };
+                    this.openModal('modal-meta-atingida');
                 }, 300);
                 return;
             }
@@ -1330,24 +1433,26 @@ const app = {
             }
             const active = document.querySelectorAll('#c2-cards-container button:not([disabled])');
             if (active.length === 0 && pl > stop) {
-                setTimeout(() => {
-                    alert('Ciclo finalizado sem atingir limites. Reiniciando...');
-                    this.initCycle2();
-                }, 500);
+                setTimeout(() => this.openModal('modal-ciclo-neutro'), 500);
             }
         } else if (ctx === 'cf') {
             if (pl >= alloc * 0.10) {
                 setTimeout(() => {
-                    alert('✅ Recuperação concluída! Voltando ao Ciclo Principal.');
-                    this.switchView('view-cycle2-config');
+                    document.getElementById('modal-meta-subtitle').innerText = 'Recuperação concluída!\nVoltando ao Ciclo Principal.';
+                    document.getElementById('modal-meta-pl').innerText = '+' + this.fmt(pl);
+                    document.getElementById('modal-meta-tip').innerText = '"Recuperar é sobreviver para o próximo dia. Você conseguiu."';
+                    const btn = document.getElementById('modal-meta-btn');
+                    btn.textContent = 'Ir ao Ciclo Principal →';
+                    btn.onclick = () => {
+                        this.closeModal('modal-meta-atingida');
+                        this.switchView('view-cycle2-config');
+                    };
+                    this.openModal('modal-meta-atingida');
                 }, 300);
                 return;
             }
             if (pl <= -(alloc * 0.25)) {
-                setTimeout(() => {
-                    if (confirm('Limite de perda diária atingido. Finalizar dia?')) this.finishDay();
-                    else this.initFinalCycle();
-                }, 300);
+                setTimeout(() => this.openModal('modal-stop-diario'), 300);
                 return;
             }
             const filled = document.querySelectorAll('#cf-cards-container input[disabled]');
