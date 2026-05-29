@@ -58,16 +58,18 @@
             background: rgba(11,14,23,0.92);
             backdrop-filter: blur(16px);
             border-bottom: 1px solid var(--border);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
+            padding: 8px 14px;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
             align-items: center;
+            gap: 8px;
         }
-        .header-brand { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-        .header-bank-wrap { text-align: right; }
-        .header-bank-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
-        .header-bank-value { font-family: var(--mono); font-size: 1.05rem; font-weight: 700; color: var(--text); }
-        .header-actions { display: flex; gap: 6px; align-items: center; }
+        .header-brand { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); line-height: 1.3; }
+        .header-brand span { display: block; font-size: 0.6rem; font-weight: 400; letter-spacing: 0.05em; color: rgba(107,114,128,0.7); margin-top: 1px; }
+        .header-bank-wrap { text-align: center; }
+        .header-bank-label { font-size: 0.58rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; line-height: 1; margin-bottom: 1px; }
+        .header-bank-value { font-family: var(--mono); font-size: 0.98rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+        .header-actions { display: flex; gap: 5px; align-items: center; }
         .btn-icon {
             background: var(--surface2);
             border: 1px solid var(--border);
@@ -81,6 +83,25 @@
             transition: all 0.2s;
         }
         .btn-icon:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Door / exit button */
+        .btn-exit {
+            width: 34px;
+            height: 34px;
+            border-radius: var(--radius-sm);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .btn-exit:hover { border-color: var(--red); color: var(--red); background: rgba(245,91,91,0.08); }
+        .btn-exit svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
         /* ─── CONTAINER ─── */
         .container {
@@ -473,10 +494,10 @@
         }
         .seg-btn {
             flex: 1;
-            padding: 8px;
+            padding: 8px 4px;
             border: none;
             border-radius: 6px;
-            font-size: 0.72rem;
+            font-size: 0.62rem;
             font-weight: 700;
             font-family: var(--sans);
             letter-spacing: 0.05em;
@@ -561,18 +582,42 @@
 <!-- HEADER -->
 <header id="global-header" class="hidden">
     <div>
-        <div class="header-brand">⬡ Evoket</div>
-        <div id="header-session-name" style="font-size:0.75rem; color: var(--muted); margin-top:2px;"></div>
-    </div>
-    <div class="header-actions">
-        <button class="btn-icon" onclick="app.showSessionSummary()">📊 Resumo</button>
-        <button class="btn-icon" onclick="app.finishDay()">⏏ Finalizar</button>
+        <div class="header-brand">⬡ Evoket<span id="header-session-name"></span></div>
     </div>
     <div class="header-bank-wrap">
         <div class="header-bank-label">Banca</div>
-        <div class="header-bank-value" id="header-bank-value">R$ 0,00</div>
+        <div class="header-bank-value" id="header-bank-value">R$0,00</div>
     </div>
+    <div class="header-actions">
+        <button class="btn-icon" onclick="app.showSessionSummary()">📊 Resumo</button>
+    </div>
+    <!-- Door / exit button -->
+    <button class="btn-exit" onclick="app.openModal('modal-exit-confirm')" title="Finalizar sessão">
+        <svg viewBox="0 0 24 24">
+            <!-- door frame -->
+            <path d="M13 4H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h7"/>
+            <!-- arrow out -->
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+    </button>
 </header>
+
+<!-- ═══ MODAL: EXIT CONFIRM ═══ -->
+<div id="modal-exit-confirm" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-exit-confirm')">
+    <div class="modal-box">
+        <div class="modal-handle"></div>
+        <div class="modal-title">Finalizar Sessão?</div>
+        <div class="modal-body" style="text-align:center;">
+            A banca atual será salva para a próxima sessão.<br>
+            Tem certeza que deseja encerrar?
+        </div>
+        <div class="modal-actions">
+            <button class="btn-red" onclick="app.finishDay()">Sim, finalizar</button>
+            <button class="btn-outline" onclick="app.closeModal('modal-exit-confirm')">Cancelar</button>
+        </div>
+    </div>
+</div>
 
 <div class="container">
 
@@ -640,9 +685,9 @@
         <div class="card">
             <div class="card-title">Perfil de Risco</div>
             <div class="seg-control">
-                <button class="seg-btn" id="risk-5" onclick="app.setRisk(0.05, this)">5% Conservador</button>
-                <button class="seg-btn active" id="risk-10" onclick="app.setRisk(0.10, this)">10% Moderado</button>
-                <button class="seg-btn" id="risk-20" onclick="app.setRisk(0.20, this)">20% Agressivo</button>
+                <button class="seg-btn" id="risk-5" onclick="app.setRisk(0.05, this)">5%<br>Conserv.</button>
+                <button class="seg-btn active" id="risk-10" onclick="app.setRisk(0.10, this)">10%<br>Moderado</button>
+                <button class="seg-btn" id="risk-20" onclick="app.setRisk(0.20, this)">20%<br>Agressivo</button>
             </div>
             <div class="stake-display">
                 <span class="stake-display-label">Stake Base</span>
@@ -960,7 +1005,8 @@ const app = {
         return parseFloat(el.value.replace('R$','').replace(/\./g,'').replace(',','.').trim()) || 0;
     },
     fmt(val) {
-        return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        const s = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        return s.replace('R$\u00a0', 'R$').replace('R$ ', 'R$');
     },
     randQuote(arr) { return arr[Math.floor(Math.random() * arr.length)]; },
 
@@ -1050,7 +1096,7 @@ const app = {
     updateHeader() {
         document.getElementById('header-bank-value').innerText = this.fmt(this.data.currentBank);
         const name = document.getElementById('header-session-name');
-        if (name) name.innerText = this.data.dayName;
+        if (name) name.innerText = this.data.dayName || '';
     },
 
     // ─── SESSION ───
@@ -1076,7 +1122,7 @@ const app = {
     },
 
     finishDay() {
-        if (!confirm('Finalizar sessão e salvar banca?')) return;
+        this.closeModal('modal-exit-confirm');
         localStorage.setItem('evoket_last_bank', this.data.currentBank.toFixed(2));
         localStorage.setItem('evoket_last_name', this.data.dayName);
         localStorage.removeItem('evoket_session');
