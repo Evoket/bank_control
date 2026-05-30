@@ -705,9 +705,9 @@
         <div class="card">
             <div class="card-title">Perfil de Risco</div>
             <div class="seg-control">
-                <button class="seg-btn" id="risk-5" onclick="app.setRisk(0.05, this)">5%<br>Conserv.</button>
-                <button class="seg-btn active" id="risk-10" onclick="app.setRisk(0.10, this)">10%<br>Moderado</button>
-                <button class="seg-btn" id="risk-20" onclick="app.setRisk(0.20, this)">20%<br>Agressivo</button>
+                <button class="seg-btn" id="risk-5" onclick="app.setRisk(0.10, this)">10%<br>Conserv.</button>
+                <button class="seg-btn active" id="risk-10" onclick="app.setRisk(0.20, this)">20%<br>Moderado</button>
+                <button class="seg-btn" id="risk-20" onclick="app.setRisk(0.30, this)">30%<br>Agressivo</button>
             </div>
             <div class="stake-display">
                 <span class="stake-display-label">Stake Base</span>
@@ -721,21 +721,21 @@
                         <div class="odd-range">ODD 1.01 – 1.05</div>
                         <div class="odd-pct">30% da Stake</div>
                     </div>
-                    <div class="odd-value val-up" id="rec-val-30">R$ 0,00</div>
+                    <div class="odd-value val-up" id="rec-val-30">R$0,00</div>
                 </div>
                 <div class="odd-rec-row">
                     <div>
                         <div class="odd-range">ODD 1.06 – 1.09</div>
                         <div class="odd-pct">20% da Stake</div>
                     </div>
-                    <div class="odd-value" style="color: var(--accent)" id="rec-val-20">R$ 0,00</div>
+                    <div class="odd-value" style="color: var(--accent)" id="rec-val-20">R$0,00</div>
                 </div>
                 <div class="odd-rec-row">
                     <div>
                         <div class="odd-range">ODD 1.10+</div>
                         <div class="odd-pct">10% da Stake</div>
                     </div>
-                    <div class="odd-value" style="color: var(--muted)" id="rec-val-10">R$ 0,00</div>
+                    <div class="odd-value" style="color: var(--muted)" id="rec-val-10">R$0,00</div>
                 </div>
             </div>
         </div>
@@ -773,9 +773,9 @@
 
             <label>% sobre a Stake Base</label>
             <div class="seg-control" id="stake-pct-seg">
-                <button class="seg-btn active" onclick="app.setStakePct(0.25, this)">25%</button>
-                <button class="seg-btn" onclick="app.setStakePct(0.30, this)">30%</button>
+                <button class="seg-btn active" onclick="app.setStakePct(0.30, this)">30%</button>
                 <button class="seg-btn" onclick="app.setStakePct(0.35, this)">35%</button>
+                <button class="seg-btn" onclick="app.setStakePct(0.40, this)">40%</button>
             </div>
 
             <div class="stake-display" style="margin-top: 4px;">
@@ -1063,7 +1063,7 @@ const app = {
         dayName: '', startBank: 0, currentBank: 0,
         currentBaseStake: 0, commissionActive: true,
         cycleAllocated: 0, cyclePL: 0, stopButtonVisible: false,
-        riskPct: 0.10, cardsCount: 5, stakePct: 0.25, cfStakePct: 0.75,
+        riskPct: 0.20, cardsCount: 5, stakePct: 0.30, cfStakePct: 0.75,
         stats: { entries: 0, greens: 0, reds: 0 }
     },
 
