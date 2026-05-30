@@ -853,9 +853,9 @@
         <div class="card">
             <div class="card-title">Stake de Recuperação</div>
             <div class="seg-control" id="cf-stake-seg">
-                <button class="seg-btn active" onclick="app.setCfStake(0.75, this)">75%</button>
-                <button class="seg-btn" onclick="app.setCfStake(0.80, this)">80%</button>
-                <button class="seg-btn" onclick="app.setCfStake(0.85, this)">85%</button>
+                <button class="seg-btn" onclick="app.setCfStake(0.80, this)">80%<br>Conserv.</button>
+                <button class="seg-btn active" onclick="app.setCfStake(0.85, this)">85%<br>Moderado</button>
+                <button class="seg-btn" onclick="app.setCfStake(0.90, this)">90%<br>Agressivo</button>
             </div>
             <div class="stake-display">
                 <span class="stake-display-label">Entrada por Operação</span>
@@ -884,7 +884,7 @@
                     <div class="cycle-stat-val" id="cf-allocated">R$ 0</div>
                 </div>
                 <div class="cycle-stat">
-                    <div class="cycle-stat-label" style="color: var(--green)">Meta +10%</div>
+                    <div class="cycle-stat-label" style="color: var(--green)">Meta +8%</div>
                     <div class="cycle-stat-val val-up" id="cf-target-win">R$ 0</div>
                 </div>
                 <div class="cycle-stat">
@@ -1063,7 +1063,7 @@ const app = {
         dayName: '', startBank: 0, currentBank: 0,
         currentBaseStake: 0, commissionActive: true,
         cycleAllocated: 0, cyclePL: 0, stopButtonVisible: false,
-        riskPct: 0.20, cardsCount: 5, stakePct: 0.30, cfStakePct: 0.75,
+        riskPct: 0.20, cardsCount: 5, stakePct: 0.30, cfStakePct: 0.85,
         stats: { entries: 0, greens: 0, reds: 0 }
     },
 
@@ -1317,7 +1317,7 @@ const app = {
         this.data.cyclePL = 0;
 
         document.getElementById('cf-allocated').innerText = this.fmt(entry * 2);
-        document.getElementById('cf-target-win').innerText = '+' + this.fmt(entry * 2 * 0.10);
+        document.getElementById('cf-target-win').innerText = '+' + this.fmt(entry * 2 * 0.08);
         document.getElementById('cf-target-loss').innerText = '-' + this.fmt(entry * 2 * 0.25);
 
         const container = document.getElementById('cf-cards-container');
@@ -1436,7 +1436,7 @@ const app = {
                 setTimeout(() => this.openModal('modal-ciclo-neutro'), 500);
             }
         } else if (ctx === 'cf') {
-            if (pl >= alloc * 0.10) {
+            if (pl >= alloc * 0.08) {
                 setTimeout(() => {
                     document.getElementById('modal-meta-subtitle').innerText = 'Recuperação concluída!\nVoltando ao Ciclo Principal.';
                     document.getElementById('modal-meta-pl').innerText = '+' + this.fmt(pl);
