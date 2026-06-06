@@ -945,25 +945,141 @@
 
 <!-- ═══ MODAL: SESSION SUMMARY ═══ -->
 <div id="modal-session-summary" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-session-summary')">
-    <div class="modal-box">
+    <div class="modal-box" style="max-height:88vh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:20px;">
         <div class="modal-handle"></div>
-        <div class="modal-title">📊 Resumo da Sessão</div>
-        <ul class="sum-list">
-            <li><span class="sum-key">Banca Inicial</span><span class="sum-val" id="sum-start-bank">—</span></li>
-            <li><span class="sum-key">Banca Atual</span><span class="sum-val" id="sum-curr-bank">—</span></li>
-            <li><span class="sum-key">Entradas</span><span class="sum-val" id="sum-entries">0</span></li>
-            <li><span class="sum-key" style="color:var(--green)">Greens ✅</span><span class="sum-val" id="sum-greens">0</span></li>
-            <li><span class="sum-key" style="color:var(--red)">Reds ❌</span><span class="sum-val" id="sum-reds">0</span></li>
-        </ul>
-        <div class="sum-result">
-            <span class="sum-result-val" id="sum-result-val">R$ 0,00</span>
-            <span class="sum-result-pct" id="sum-result-pct">0,00%</span>
+        <div class="modal-title" style="margin-bottom:12px;">📊 Desempenho</div>
+
+        <!-- TAB BAR -->
+        <div style="display:flex;background:var(--surface2);border-radius:var(--radius-sm);padding:3px;gap:3px;margin-bottom:16px;flex-shrink:0;">
+            <button class="seg-btn active" id="tab-session-btn" onclick="app.switchSummaryTab('session')" style="font-size:0.7rem;">Sessão Atual</button>
+            <button class="seg-btn" id="tab-history-btn" onclick="app.switchSummaryTab('history')" style="font-size:0.7rem;">Histórico Geral</button>
         </div>
-        <div class="modal-actions">
-            <button class="btn-outline" onclick="app.closeModal('modal-session-summary')">Fechar</button>
+
+        <div style="overflow-y:auto;flex:1;padding-right:2px;">
+
+            <!-- ── SESSÃO ATUAL ── -->
+            <div id="tab-session">
+                <ul class="sum-list">
+                    <li><span class="sum-key">Banca Inicial</span><span class="sum-val" id="sum-start-bank">—</span></li>
+                    <li><span class="sum-key">Banca Atual</span><span class="sum-val" id="sum-curr-bank">—</span></li>
+                    <li><span class="sum-key">Entradas</span><span class="sum-val" id="sum-entries">0</span></li>
+                    <li><span class="sum-key" style="color:var(--green)">Greens ✅</span><span class="sum-val" id="sum-greens">0</span></li>
+                    <li><span class="sum-key" style="color:var(--red)">Reds ❌</span><span class="sum-val" id="sum-reds">0</span></li>
+                    <li><span class="sum-key">Taxa de Acerto</span><span class="sum-val" id="sum-winrate">—</span></li>
+                </ul>
+                <div class="sum-result" style="margin-top:12px;">
+                    <span class="sum-result-val" id="sum-result-val">R$0,00</span>
+                    <span class="sum-result-pct" id="sum-result-pct">0,00%</span>
+                </div>
+            </div>
+
+            <!-- ── HISTÓRICO GERAL ── -->
+            <div id="tab-history" class="hidden">
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+                    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;">
+                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Banca Inicial</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-start-bank">—</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;">
+                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Banca Atual</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-curr-bank">—</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid rgba(16,217,160,0.25);border-radius:var(--radius-sm);padding:10px 12px;">
+                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Lucro Acumulado</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-total-pl">—</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid rgba(91,138,245,0.25);border-radius:var(--radius-sm);padding:10px 12px;">
+                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">ROI Acumulado</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-roi">—</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;">
+                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Dias Operados</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-days">0</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;">
+                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Taxa de Acerto</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-winrate">—</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid rgba(16,217,160,0.25);border-radius:var(--radius-sm);padding:10px 12px;">
+                        <div style="font-size:0.6rem;color:var(--green);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Total Greens</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;color:var(--green);" id="h-greens">0</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid rgba(245,91,91,0.25);border-radius:var(--radius-sm);padding:10px 12px;">
+                        <div style="font-size:0.6rem;color:var(--red);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Total Reds</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;color:var(--red);" id="h-reds">0</div>
+                    </div>
+                </div>
+
+                <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Evolução da Banca</div>
+                <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;">
+                    <canvas id="history-chart" height="110" style="width:100%;display:block;"></canvas>
+                    <div id="chart-empty" style="text-align:center;font-size:0.75rem;color:var(--muted);padding:20px 0;display:none;">Sem histórico ainda. Encerre sua primeira sessão para ver o gráfico.</div>
+                </div>
+
+                <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                    <span>Sessões Anteriores</span>
+                    <button onclick="app.confirmResetHistory()" style="font-size:0.6rem;color:var(--red);background:none;border:none;cursor:pointer;font-family:var(--sans);font-weight:700;padding:0;text-transform:uppercase;letter-spacing:0.05em;">Reset Geral</button>
+                </div>
+                <div id="session-list-container">
+                    <div style="text-align:center;font-size:0.78rem;color:var(--muted);padding:20px 0;">Nenhuma sessão encerrada ainda.</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:14px;flex-shrink:0;">
+            <button class="btn-outline" onclick="app.closeModal('modal-session-summary')" style="margin:0;">Fechar</button>
         </div>
     </div>
 </div>
+
+<!-- ═══ MODAL: SESSION DETAIL ═══ -->
+<div id="modal-session-detail" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-session-detail')">
+    <div class="modal-box">
+        <div class="modal-handle"></div>
+        <div class="modal-title" id="detail-date" style="font-size:0.95rem;">—</div>
+        <ul class="sum-list" id="detail-list"></ul>
+        <div class="sum-result" style="margin-top:12px;">
+            <span class="sum-result-val" id="detail-pl">—</span>
+            <span class="sum-result-pct" id="detail-pct">—</span>
+        </div>
+        <div class="modal-actions" style="margin-top:14px;">
+            <button class="btn-outline" onclick="app.closeModal('modal-session-detail')" style="margin:0;">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ MODAL: RESET CONFIRM ═══ -->
+<div id="modal-reset-confirm" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-reset-confirm')">
+    <div class="modal-box" style="text-align:center;">
+        <div class="modal-handle"></div>
+        <div style="font-size:2rem;margin-bottom:8px;">⚠️</div>
+        <div class="modal-title" style="color:var(--red);">Apagar Histórico?</div>
+        <div class="modal-body">Esta ação é irreversível. Todo o histórico de sessões e estatísticas acumuladas serão apagados permanentemente.</div>
+        <div class="modal-actions" style="margin-top:16px;">
+            <button class="btn-red" onclick="app.resetHistory()">Sim, apagar tudo</button>
+            <button class="btn-outline" onclick="app.closeModal('modal-reset-confirm')" style="margin:0;">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.session-row {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 12px; background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius-sm); margin-bottom:7px; cursor:pointer; transition:border-color 0.2s;
+}
+.session-row:hover { border-color:rgba(255,255,255,0.12); }
+.session-row-name { font-size:0.8rem; font-weight:700; color:var(--text); }
+.session-row-date { font-size:0.65rem; color:var(--muted); font-family:var(--mono); margin-top:2px; }
+.session-row-pl   { font-family:var(--mono); font-size:0.9rem; font-weight:700; text-align:right; }
+.session-row-meta { font-size:0.65rem; color:var(--muted); text-align:right; margin-top:2px; }
+@keyframes trophy-pop {
+    0%   { transform:scale(0.3) rotate(-15deg); opacity:0; }
+    70%  { transform:scale(1.15) rotate(5deg); }
+    100% { transform:scale(1) rotate(0deg); opacity:1; }
+}
+</style>
 
 <!-- ═══ MODAL: START HELP ═══ -->
 <div id="modal-start-help" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-start-help')">
@@ -1518,22 +1634,247 @@ const app = {
         this.saveToStorage();
     },
 
+    // ─── HISTORY ───
+    getHistory() {
+        try { return JSON.parse(localStorage.getItem('evoket_history') || '[]'); } catch(e) { return []; }
+    },
+    saveHistory(h) { localStorage.setItem('evoket_history', JSON.stringify(h)); },
+
+    saveSessionToHistory() {
+        const { startBank, currentBank, dayName, stats } = this.data;
+        const diff = currentBank - startBank;
+        const pct  = startBank > 0 ? (diff / startBank) * 100 : 0;
+        const record = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString('pt-BR'),
+            name: dayName || 'Sessão',
+            startBank, endBank: currentBank,
+            pl: diff, pct,
+            entries: stats.entries,
+            greens: stats.greens,
+            reds: stats.reds
+        };
+        const h = this.getHistory();
+        h.unshift(record);
+        this.saveHistory(h);
+        const life = JSON.parse(localStorage.getItem('evoket_lifetime') || '{}');
+        if (!life.initialBank) life.initialBank = startBank;
+        life.totalEntries = (life.totalEntries || 0) + stats.entries;
+        life.totalGreens  = (life.totalGreens  || 0) + stats.greens;
+        life.totalReds    = (life.totalReds    || 0) + stats.reds;
+        localStorage.setItem('evoket_lifetime', JSON.stringify(life));
+    },
+
+    switchSummaryTab(tab) {
+        document.getElementById('tab-session').classList.toggle('hidden', tab !== 'session');
+        document.getElementById('tab-history').classList.toggle('hidden', tab !== 'history');
+        document.getElementById('tab-session-btn').classList.toggle('active', tab === 'session');
+        document.getElementById('tab-history-btn').classList.toggle('active', tab === 'history');
+        if (tab === 'history') this.renderHistoryTab();
+    },
+
+    renderHistoryTab() {
+        const h = this.getHistory();
+        const life = JSON.parse(localStorage.getItem('evoket_lifetime') || '{}');
+        const currentBank = this.data.currentBank;
+        const initBank = life.initialBank || this.data.startBank;
+        const totalPL = currentBank - initBank;
+        const roi = initBank > 0 ? (totalPL / initBank) * 100 : 0;
+        const totalWR = (life.totalGreens || 0) + (life.totalReds || 0);
+        const wr = totalWR > 0 ? ((life.totalGreens / totalWR) * 100).toFixed(1) + '%' : '—';
+
+        document.getElementById('h-start-bank').innerText = this.fmt(initBank);
+        document.getElementById('h-curr-bank').innerText  = this.fmt(currentBank);
+        document.getElementById('h-total-pl').innerHTML   = `<span style="color:${totalPL >= 0 ? 'var(--green)' : 'var(--red)'}">${(totalPL >= 0 ? '+' : '') + this.fmt(totalPL)}</span>`;
+        document.getElementById('h-roi').innerHTML        = `<span style="color:${roi >= 0 ? 'var(--accent)' : 'var(--red)'}">${(roi >= 0 ? '+' : '') + roi.toFixed(2) + '%'}</span>`;
+        document.getElementById('h-days').innerText       = h.length;
+        document.getElementById('h-winrate').innerText    = wr;
+        document.getElementById('h-greens').innerText     = life.totalGreens || 0;
+        document.getElementById('h-reds').innerText       = life.totalReds   || 0;
+
+        this.renderChart(h, initBank);
+        this.renderSessionList(h);
+    },
+
+    renderChart(h, initBank) {
+        const canvas = document.getElementById('history-chart');
+        const empty  = document.getElementById('chart-empty');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        if (!h.length) {
+            canvas.style.display = 'none';
+            empty.style.display  = 'block';
+            return;
+        }
+        canvas.style.display = 'block';
+        empty.style.display  = 'none';
+
+        const points = [initBank, ...h.slice().reverse().map(s => s.endBank)];
+        const labels = ['Início', ...h.slice().reverse().map(s => s.date)];
+
+        const W = canvas.offsetWidth || 300;
+        const H = 110;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+
+        const pad = { t: 10, r: 10, b: 24, l: 46 };
+        const cw = W - pad.l - pad.r;
+        const ch = H - pad.t - pad.b;
+
+        const minV = Math.min(...points);
+        const maxV = Math.max(...points);
+        const range = maxV - minV || 1;
+
+        const xOf = i => pad.l + (i / (points.length - 1)) * cw;
+        const yOf = v => pad.t + ch - ((v - minV) / range) * ch;
+
+        // Grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 3; i++) {
+            const y = pad.t + (ch / 3) * i;
+            ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+        }
+
+        // Y labels
+        ctx.fillStyle = 'rgba(107,114,128,0.8)';
+        ctx.font = '9px JetBrains Mono, monospace';
+        ctx.textAlign = 'right';
+        [0, 0.5, 1].forEach(t => {
+            const v = minV + range * (1 - t);
+            ctx.fillText('R$' + v.toFixed(0), pad.l - 4, pad.t + ch * t + 3);
+        });
+
+        const isUp = points[points.length - 1] >= points[0];
+        const lineColor = isUp ? 'rgba(16,217,160,0.9)' : 'rgba(245,91,91,0.9)';
+
+        // Gradient fill
+        const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+        grad.addColorStop(0, isUp ? 'rgba(16,217,160,0.22)' : 'rgba(245,91,91,0.18)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.moveTo(xOf(0), yOf(points[0]));
+        points.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
+        ctx.lineTo(xOf(points.length - 1), pad.t + ch);
+        ctx.lineTo(xOf(0), pad.t + ch);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(xOf(0), yOf(points[0]));
+        points.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Dots
+        points.forEach((v, i) => {
+            ctx.beginPath();
+            ctx.arc(xOf(i), yOf(v), 3, 0, Math.PI * 2);
+            ctx.fillStyle = lineColor;
+            ctx.fill();
+        });
+
+        // X labels first + last
+        ctx.fillStyle = 'rgba(107,114,128,0.8)';
+        ctx.textAlign = 'center';
+        [[0, labels[0]], [points.length - 1, labels[points.length - 1]]].forEach(([i, lbl]) => {
+            ctx.fillText(lbl, xOf(i), H - 4);
+        });
+    },
+
+    renderSessionList(h) {
+        const c = document.getElementById('session-list-container');
+        if (!h.length) {
+            c.innerHTML = '<div style="text-align:center;font-size:0.78rem;color:var(--muted);padding:20px 0;">Nenhuma sessão encerrada ainda.</div>';
+            return;
+        }
+        c.innerHTML = '';
+        h.forEach(s => {
+            const row = document.createElement('div');
+            row.className = 'session-row';
+            row.innerHTML = `
+                <div>
+                    <div class="session-row-name">${s.name}</div>
+                    <div class="session-row-date">${s.date} · ${s.entries} entradas</div>
+                </div>
+                <div>
+                    <div class="session-row-pl" style="color:${s.pl >= 0 ? 'var(--green)' : 'var(--red)'}">
+                        ${s.pl >= 0 ? '+' : ''}${this.fmt(s.pl)}
+                    </div>
+                    <div class="session-row-meta">${s.pl >= 0 ? '+' : ''}${s.pct.toFixed(2)}%</div>
+                </div>
+            `;
+            row.addEventListener('click', () => this.openSessionDetail(s));
+            c.appendChild(row);
+        });
+    },
+
+    openSessionDetail(s) {
+        document.getElementById('detail-date').innerText = `${s.name} — ${s.date}`;
+        const wr = (s.greens + s.reds) > 0 ? (s.greens / (s.greens + s.reds) * 100).toFixed(1) + '%' : '—';
+        document.getElementById('detail-list').innerHTML = `
+            <li><span class="sum-key">Banca Inicial</span><span class="sum-val">${this.fmt(s.startBank)}</span></li>
+            <li><span class="sum-key">Banca Final</span><span class="sum-val">${this.fmt(s.endBank)}</span></li>
+            <li><span class="sum-key">Entradas</span><span class="sum-val">${s.entries}</span></li>
+            <li><span class="sum-key" style="color:var(--green)">Greens ✅</span><span class="sum-val">${s.greens}</span></li>
+            <li><span class="sum-key" style="color:var(--red)">Reds ❌</span><span class="sum-val">${s.reds}</span></li>
+            <li><span class="sum-key">Taxa de Acerto</span><span class="sum-val">${wr}</span></li>
+        `;
+        const plEl  = document.getElementById('detail-pl');
+        const pctEl = document.getElementById('detail-pct');
+        plEl.innerText  = (s.pl >= 0 ? '+' : '') + this.fmt(s.pl);
+        pctEl.innerText = (s.pl >= 0 ? '+' : '') + s.pct.toFixed(2) + '%';
+        plEl.style.color  = s.pl >= 0 ? 'var(--green)' : 'var(--red)';
+        pctEl.style.color = s.pl >= 0 ? 'var(--green)' : 'var(--red)';
+        this.openModal('modal-session-detail');
+    },
+
+    confirmResetHistory() { this.openModal('modal-reset-confirm'); },
+
+    resetHistory() {
+        localStorage.removeItem('evoket_history');
+        localStorage.removeItem('evoket_lifetime');
+        this.closeModal('modal-reset-confirm');
+        this.renderHistoryTab();
+    },
+
     showSessionSummary() {
         const { startBank, currentBank, stats } = this.data;
         const diff = currentBank - startBank;
-        const pct = startBank > 0 ? (diff / startBank) * 100 : 0;
+        const pct  = startBank > 0 ? (diff / startBank) * 100 : 0;
+        const wr   = stats.entries > 0 ? (stats.greens / stats.entries * 100).toFixed(1) + '%' : '—';
+
         document.getElementById('sum-start-bank').innerText = this.fmt(startBank);
-        document.getElementById('sum-curr-bank').innerText = this.fmt(currentBank);
-        document.getElementById('sum-entries').innerText = stats.entries;
-        document.getElementById('sum-greens').innerText = stats.greens;
-        document.getElementById('sum-reds').innerText = stats.reds;
+        document.getElementById('sum-curr-bank').innerText  = this.fmt(currentBank);
+        document.getElementById('sum-entries').innerText    = stats.entries;
+        document.getElementById('sum-greens').innerText     = stats.greens;
+        document.getElementById('sum-reds').innerText       = stats.reds;
+        document.getElementById('sum-winrate').innerText    = wr;
+
         const rv = document.getElementById('sum-result-val');
         const rp = document.getElementById('sum-result-pct');
         rv.innerText = (diff >= 0 ? '+' : '') + this.fmt(diff);
         rp.innerText = (diff >= 0 ? '+' : '') + pct.toFixed(2) + '%';
         rv.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
         rp.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+
+        this.switchSummaryTab('session');
         this.openModal('modal-session-summary');
+    },
+
+    finishDay() {
+        this.closeModal('modal-exit-confirm');
+        this.saveSessionToHistory();
+        localStorage.setItem('evoket_last_bank', this.data.currentBank.toFixed(2));
+        localStorage.setItem('evoket_last_name', this.data.dayName);
+        localStorage.removeItem('evoket_session');
+        location.reload();
     }
 };
 
