@@ -810,12 +810,12 @@
             </div>
 
             <div class="stake-display" style="margin-top: 4px;">
-                <span class="stake-display-label">Entrada por Operação</span>
-                <span class="stake-display-value" id="c2-preview-entry">R$ 0,00</span>
+                <span class="stake-display-label">Entrada por Operação <span id="c2-mult-badge" style="font-size:0.6rem; font-weight:700; font-family:var(--mono); color:var(--muted); margin-left:4px;"></span></span>
+                <span class="stake-display-value" id="c2-preview-entry">R$0,00</span>
             </div>
             <div class="stake-display" style="margin-top: -4px;">
                 <span class="stake-display-label">Total Alocado</span>
-                <span class="stake-display-value" id="c2-preview-total">R$ 0,00</span>
+                <span class="stake-display-value" id="c2-preview-total">R$0,00</span>
             </div>
 
             <button class="btn-primary" style="margin-top: 8px;" onclick="app.initCycle2()">Entrar no Ciclo →</button>
@@ -1408,13 +1408,27 @@ const app = {
         if (r20) r20.innerText = this.fmt(s * 0.20);
         if (r10) r10.innerText = this.fmt(s * 0.10);
     },
+    // Redução gradual: 2 ops = 100%, cada op adicional reduz 5%
+    c2Multiplier(n) {
+        const map = { 2: 1.00, 3: 0.95, 4: 0.90, 5: 0.85, 6: 0.80 };
+        return map[n] || 1.00;
+    },
+
     updateC2Preview() {
-        const entry = this.data.currentBaseStake * this.data.stakePct;
-        const total = entry * this.data.cardsCount;
+        const baseEntry = this.data.currentBaseStake * this.data.stakePct;
+        const mult      = this.c2Multiplier(this.data.cardsCount);
+        const entry     = baseEntry * mult;
+        const total     = entry * this.data.cardsCount;
         const pe = document.getElementById('c2-preview-entry');
         const pt = document.getElementById('c2-preview-total');
         if (pe) pe.innerText = this.fmt(entry);
         if (pt) pt.innerText = this.fmt(total);
+        const badge = document.getElementById('c2-mult-badge');
+        if (badge) {
+            const pct = Math.round(mult * 100);
+            badge.innerText = pct < 100 ? `−${100 - pct}%` : '';
+            badge.style.color = pct < 100 ? 'var(--gold)' : 'var(--muted)';
+        }
     },
     updateCfPreview() {
         const entry = this.data.currentBaseStake * this.data.cfStakePct;
@@ -1443,8 +1457,10 @@ const app = {
 
     // ─── CYCLE 2 ───
     initCycle2() {
-        const entry = this.data.currentBaseStake * this.data.stakePct;
-        const total = entry * this.data.cardsCount;
+        const baseEntry = this.data.currentBaseStake * this.data.stakePct;
+        const mult      = this.c2Multiplier(this.data.cardsCount);
+        const entry     = baseEntry * mult;
+        const total     = entry * this.data.cardsCount;
         this.data.cycleAllocated = total;
         this.data.cyclePL = 0;
         this.data.stopButtonVisible = false;
