@@ -692,7 +692,7 @@
             <label onclick="document.getElementById('input-commission').click()" style="cursor:pointer">
                 <div class="checkbox-wrapper" style="margin-bottom:0;">
                     <input type="checkbox" id="input-commission" checked>
-                    <span>Cobrar comissão (3.9% em Green)</span>
+                    <span>Cobrar comissão (3.95% em Green)</span>
                 </div>
             </label>
 
@@ -1443,7 +1443,7 @@ const app = {
         this.data.stats.entries++;
         if (type === 'GREEN') {
             this.data.stats.greens++;
-            if (this.data.commissionActive) val *= 0.961;
+            if (this.data.commissionActive) val *= 0.9605;
             this.updateBank(val);
             document.getElementById('start-result-val').value = '';
             this.calcStartStake();
@@ -1530,7 +1530,7 @@ const app = {
         this.data.stats.entries++;
         if (type === 'GREEN') {
             this.data.stats.greens++;
-            if (this.data.commissionActive) val *= 0.961;
+            if (this.data.commissionActive) val *= 0.9605;
             this.updateBank(val);
             this.data.cyclePL += val;
         } else {
