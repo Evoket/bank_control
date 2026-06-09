@@ -692,13 +692,153 @@
             <label onclick="document.getElementById('input-commission').click()" style="cursor:pointer">
                 <div class="checkbox-wrapper" style="margin-bottom:0;">
                     <input type="checkbox" id="input-commission" checked>
-                    <span>Cobrar comissão (3.95% em Green)</span>
+                    <span>Cobrar comissão (4% em Green)</span>
                 </div>
             </label>
 
             <div style="margin-top: 14px;">
                 <button class="btn-primary" onclick="app.startSession()">Iniciar Gestão →</button>
             </div>
+        </div>
+
+        <!-- ── CALCULADORA CARD ── -->
+        <div class="card" style="margin-top: 14px; border-color: rgba(91,138,245,0.2); background: linear-gradient(135deg, var(--surface) 0%, rgba(91,138,245,0.04) 100%);">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+                <div style="font-size:1.5rem;">📈</div>
+                <div>
+                    <div style="font-size:0.85rem; font-weight:800; color:var(--text);">Calculadora de Juros Compostos</div>
+                    <div style="font-size:0.68rem; color:var(--muted); margin-top:2px;">Simule o crescimento da sua banca no longo prazo</div>
+                </div>
+            </div>
+            <div id="calc-home-quote" style="font-size:0.75rem; color:var(--muted); font-style:italic; margin-bottom:12px; padding: 8px 10px; background: var(--surface2); border-radius: var(--radius-sm); border-left: 2px solid var(--accent); line-height:1.5;"></div>
+            <button class="btn-outline" onclick="app.switchView('view-calc')" style="border-color: rgba(91,138,245,0.3); color: var(--accent);">Simule Agora →</button>
+        </div>
+    </section>
+
+    <!-- ═══ VIEW: CALCULADORA ═══ -->
+    <section id="view-calc" class="hidden">
+        <div class="section-head">
+            <div class="section-head-left">
+                <div class="section-eyebrow eyebrow-blue">Ferramenta</div>
+                <div class="section-title-futura">Juros Compostos</div>
+            </div>
+            <button class="btn-help-circle" onclick="app.switchView('view-home')" style="font-size:0.8rem;">←</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Parâmetros da Simulação</div>
+
+            <label>Banca Inicial (R$)</label>
+            <input type="tel" id="calc-bank" placeholder="R$0,00" oninput="app.maskCurrency(this)">
+
+            <label>Lucro Médio Diário (%)</label>
+            <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+                <button class="seg-btn" style="flex:1; min-width:48px;" onclick="app.setCalcPct(0.5,this)">0,5%</button>
+                <button class="seg-btn" style="flex:1; min-width:48px;" onclick="app.setCalcPct(0.8,this)">0,8%</button>
+                <button class="seg-btn active" style="flex:1; min-width:48px;" onclick="app.setCalcPct(1.0,this)">1,0%</button>
+                <button class="seg-btn" style="flex:1; min-width:48px;" onclick="app.setCalcPct(1.5,this)">1,5%</button>
+                <button class="seg-btn" style="flex:1; min-width:48px;" onclick="app.setCalcPct(2.0,this)">2,0%</button>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
+                <div style="font-size:0.65rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; white-space:nowrap;">Ou digitar:</div>
+                <input type="number" id="calc-pct-input" placeholder="ex: 0.8" step="0.1" min="0.1" max="20" style="font-size:0.9rem; margin:0;" oninput="app.calcPctFromInput(this)">
+                <div style="font-size:0.9rem; color:var(--muted); font-family:var(--mono);">%</div>
+            </div>
+
+            <label>Período de Simulação</label>
+            <div style="display:flex; gap:6px; margin-bottom:12px;">
+                <button class="seg-btn active" id="calc-d30" style="flex:1;" onclick="app.setCalcDays(30,this)">30 dias</button>
+                <button class="seg-btn" id="calc-d60" style="flex:1;" onclick="app.setCalcDays(60,this)">60 dias</button>
+                <button class="seg-btn" id="calc-d90" style="flex:1;" onclick="app.setCalcDays(90,this)">90 dias</button>
+                <button class="seg-btn" id="calc-dcustom" style="flex:1;" onclick="app.setCalcDaysCustom(this)">Outro</button>
+            </div>
+            <div id="calc-custom-days-wrap" class="hidden">
+                <input type="number" id="calc-custom-days" placeholder="Qtd. de dias" min="1" max="3650" style="margin-bottom:12px;">
+            </div>
+
+            <!-- Stop Loss toggle -->
+            <label onclick="app.toggleCalcStop()" style="cursor:pointer;">
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="calc-stop-check">
+                    <span>Simular Stop Loss (cenário realista)</span>
+                </div>
+            </label>
+
+            <div id="calc-stop-config" class="hidden">
+                <label>Stop Loss por dia negativo (%)</label>
+                <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+                    <button class="seg-btn active" id="calc-sl-1" style="flex:1;" onclick="app.setCalcSL(1,this)">-1%</button>
+                    <button class="seg-btn" style="flex:1;" onclick="app.setCalcSL(2,this)">-2%</button>
+                    <button class="seg-btn" style="flex:1;" onclick="app.setCalcSL(3,this)">-3%</button>
+                    <button class="seg-btn" style="flex:1;" onclick="app.setCalcSL(5,this)">-5%</button>
+                </div>
+
+                <label>Frequência dos dias negativos</label>
+                <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+                    <button class="seg-btn active" id="calc-freq-5" style="flex:1; font-size:0.58rem;" onclick="app.setCalcFreq(5,this)">A cada 5</button>
+                    <button class="seg-btn" style="flex:1; font-size:0.58rem;" onclick="app.setCalcFreq(10,this)">A cada 10</button>
+                    <button class="seg-btn" style="flex:1; font-size:0.58rem;" onclick="app.setCalcFreq(15,this)">A cada 15</button>
+                    <button class="seg-btn" style="flex:1; font-size:0.58rem;" onclick="app.setCalcFreq(20,this)">A cada 20</button>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="calc-use-history" onclick="app.calcUseHistory()" style="background: var(--surface2); border: 1px solid var(--border); color: var(--muted); box-shadow: none; margin-bottom:8px; font-size:0.75rem;">
+                📊 Usar Desempenho Atual
+            </button>
+            <button class="btn-primary" onclick="app.runCalc()">Calcular →</button>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="calc-results" class="hidden">
+
+            <!-- KPIs -->
+            <div class="card">
+                <div class="card-title">Resultado Projetado</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                    <div style="background:var(--surface2); border:1px solid rgba(16,217,160,0.25); border-radius:var(--radius-sm); padding:12px; text-align:center;">
+                        <div style="font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Valor Final</div>
+                        <div style="font-family:var(--mono); font-size:1.1rem; font-weight:800; color:var(--green);" id="calc-final-val">—</div>
+                    </div>
+                    <div style="background:var(--surface2); border:1px solid rgba(91,138,245,0.25); border-radius:var(--radius-sm); padding:12px; text-align:center;">
+                        <div style="font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Lucro Total</div>
+                        <div style="font-family:var(--mono); font-size:1.1rem; font-weight:800; color:var(--accent);" id="calc-profit">—</div>
+                    </div>
+                    <div style="background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; text-align:center;">
+                        <div style="font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Crescimento</div>
+                        <div style="font-family:var(--mono); font-size:1.1rem; font-weight:800;" id="calc-growth">—</div>
+                    </div>
+                    <div style="background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px; text-align:center;">
+                        <div style="font-size:0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Média Mensal</div>
+                        <div style="font-family:var(--mono); font-size:1.1rem; font-weight:800; color:var(--gold);" id="calc-monthly">—</div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div style="font-size:0.65rem; font-weight:800; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:8px;">Evolução da Banca</div>
+                <div style="background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px;">
+                    <canvas id="calc-chart" height="120" style="width:100%; display:block;"></canvas>
+                </div>
+            </div>
+
+            <!-- Comparativo (shown only with stop) -->
+            <div id="calc-compare-block" class="card hidden">
+                <div class="card-title">Comparativo de Cenários</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                    <div style="background:var(--green-bg); border:1px solid var(--green-border); border-radius:var(--radius-sm); padding:10px; text-align:center;">
+                        <div style="font-size:0.58rem; color:var(--green); text-transform:uppercase; font-weight:800; margin-bottom:4px;">Ideal</div>
+                        <div style="font-family:var(--mono); font-size:0.85rem; font-weight:700; color:var(--green);" id="calc-ideal-val">—</div>
+                    </div>
+                    <div style="background:var(--gold-bg); border:1px solid var(--gold-border); border-radius:var(--radius-sm); padding:10px; text-align:center;">
+                        <div style="font-size:0.58rem; color:var(--gold); text-transform:uppercase; font-weight:800; margin-bottom:4px;">Realista</div>
+                        <div style="font-family:var(--mono); font-size:0.85rem; font-weight:700; color:var(--gold);" id="calc-real-val">—</div>
+                    </div>
+                    <div style="background:var(--red-bg); border:1px solid var(--red-border); border-radius:var(--radius-sm); padding:10px; text-align:center;">
+                        <div style="font-size:0.58rem; color:var(--red); text-transform:uppercase; font-weight:800; margin-bottom:4px;">Diferença</div>
+                        <div style="font-family:var(--mono); font-size:0.85rem; font-weight:700; color:var(--red);" id="calc-diff-val">—</div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </section>
 
@@ -1295,13 +1435,15 @@ const app = {
         this.loadFromStorage();
         const el = document.getElementById('home-quote');
         if (el) el.innerText = this.randQuote(this.quotes);
+        const cq = document.getElementById('calc-home-quote');
+        if (cq) cq.innerText = this.randQuote(this.calcQuotes);
     },
 
     switchView(id) {
         document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         const hdr = document.getElementById('global-header');
-        hdr.classList.toggle('hidden', id === 'view-home');
+        hdr.classList.toggle('hidden', id === 'view-home' || id === 'view-calc');
         if (id === 'view-start') {
             const q = document.getElementById('start-quote');
             if (q) q.innerText = this.randQuote(this.startQuotes);
@@ -1443,7 +1585,7 @@ const app = {
         this.data.stats.entries++;
         if (type === 'GREEN') {
             this.data.stats.greens++;
-            if (this.data.commissionActive) val *= 0.9605;
+            if (this.data.commissionActive) val *= 0.96;
             this.updateBank(val);
             document.getElementById('start-result-val').value = '';
             this.calcStartStake();
@@ -1530,7 +1672,7 @@ const app = {
         this.data.stats.entries++;
         if (type === 'GREEN') {
             this.data.stats.greens++;
-            if (this.data.commissionActive) val *= 0.9605;
+            if (this.data.commissionActive) val *= 0.96;
             this.updateBank(val);
             this.data.cyclePL += val;
         } else {
@@ -1650,7 +1792,251 @@ const app = {
         this.saveToStorage();
     },
 
-    // ─── HISTORY ───
+    // ─── CALCULATOR ───
+    calcState: {
+        pct: 1.0,
+        days: 30,
+        stopActive: false,
+        stopLoss: 1,
+        stopFreq: 5,
+    },
+
+    calcQuotes: [
+        "Com apenas 0,8% ao dia, uma banca de R$500 pode ultrapassar R$1.000 em aproximadamente 90 dias.",
+        "Pequenos lucros consistentes geram grandes resultados no longo prazo.",
+        "1% ao dia transforma R$1.000 em mais de R$2.700 em 100 dias com juros compostos.",
+        "A consistência diária é mais poderosa do que qualquer entrada isolada.",
+        "Juros compostos: o segredo de quem cresce devagar e chega longe."
+    ],
+
+    setCalcPct(v, btn) {
+        this.calcState.pct = v;
+        document.querySelectorAll('#view-calc .seg-btn').forEach(b => {
+            if ([0.5,0.8,1.0,1.5,2.0].includes(parseFloat(b.textContent))) b.classList.remove('active');
+        });
+        if (btn) btn.classList.add('active');
+        const inp = document.getElementById('calc-pct-input');
+        if (inp) inp.value = v;
+    },
+    calcPctFromInput(el) {
+        const v = parseFloat(el.value);
+        if (!isNaN(v) && v > 0) this.calcState.pct = v;
+    },
+    setCalcDays(d, btn) {
+        this.calcState.days = d;
+        ['calc-d30','calc-d60','calc-d90','calc-dcustom'].forEach(id => {
+            const b = document.getElementById(id);
+            if (b) b.classList.remove('active');
+        });
+        if (btn) btn.classList.add('active');
+        document.getElementById('calc-custom-days-wrap').classList.add('hidden');
+    },
+    setCalcDaysCustom(btn) {
+        ['calc-d30','calc-d60','calc-d90','calc-dcustom'].forEach(id => {
+            const b = document.getElementById(id);
+            if (b) b.classList.remove('active');
+        });
+        if (btn) btn.classList.add('active');
+        document.getElementById('calc-custom-days-wrap').classList.remove('hidden');
+    },
+    setCalcSL(v, btn) {
+        this.calcState.stopLoss = v;
+        document.querySelectorAll('#calc-stop-config .seg-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    },
+    setCalcFreq(v, btn) {
+        this.calcState.stopFreq = v;
+        // find freq buttons by data or by position
+        const parent = btn && btn.parentElement;
+        if (parent) parent.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+    },
+    toggleCalcStop() {
+        const cb = document.getElementById('calc-stop-check');
+        const cfg = document.getElementById('calc-stop-config');
+        setTimeout(() => {
+            this.calcState.stopActive = cb.checked;
+            cfg.classList.toggle('hidden', !cb.checked);
+        }, 10);
+    },
+    calcUseHistory() {
+        const h = this.getHistory();
+        if (!h || h.length === 0) {
+            this.openModal('modal-campo-vazio');
+            return;
+        }
+        const avgPct = h.reduce((s, s2) => s + s2.pct, 0) / h.length;
+        this.calcState.pct = Math.abs(parseFloat(avgPct.toFixed(2)));
+        const inp = document.getElementById('calc-pct-input');
+        if (inp) inp.value = this.calcState.pct;
+        // highlight "Outro" since it's a custom value
+        document.getElementById('calc-dcustom').click();
+        document.getElementById('calc-dcustom').classList.add('active');
+        // pre-fill bank from current
+        const bankEl = document.getElementById('calc-bank');
+        if (bankEl && this.data.currentBank > 0) {
+            const v = Math.round(this.data.currentBank * 100).toString();
+            bankEl.value = v;
+            this.maskCurrency(bankEl);
+        }
+    },
+
+    runCalc() {
+        const bank = this.getMoneyValue('calc-bank');
+        if (bank <= 0) { this.openModal('modal-campo-vazio'); return; }
+
+        const customDays = parseInt(document.getElementById('calc-custom-days')?.value);
+        const days = !isNaN(customDays) && customDays > 0 ? customDays : this.calcState.days;
+        const dailyPct = this.calcState.pct / 100;
+        const { stopActive, stopLoss, stopFreq } = this.calcState;
+        const lossPct = stopLoss / 100;
+
+        // Build daily series
+        const ideal = [bank];
+        const real  = [bank];
+
+        for (let d = 1; d <= days; d++) {
+            // ideal: compound every day
+            ideal.push(ideal[d - 1] * (1 + dailyPct));
+            // real: stop on every stopFreq-th day
+            if (stopActive && d % stopFreq === 0) {
+                real.push(real[d - 1] * (1 - lossPct));
+            } else {
+                real.push(real[d - 1] * (1 + dailyPct));
+            }
+        }
+
+        const mainSeries = stopActive ? real : ideal;
+        const finalVal   = mainSeries[days];
+        const profit     = finalVal - bank;
+        const growthPct  = (profit / bank) * 100;
+        const months     = days / 30;
+        const monthlyPct = Math.pow(finalVal / bank, 1 / months) - 1;
+
+        // Update KPIs
+        document.getElementById('calc-final-val').innerText = this.fmt(finalVal);
+        document.getElementById('calc-profit').innerText    = '+' + this.fmt(profit);
+        const gEl = document.getElementById('calc-growth');
+        gEl.innerText = '+' + growthPct.toFixed(2) + '%';
+        gEl.style.color = 'var(--green)';
+        document.getElementById('calc-monthly').innerText = '+' + (monthlyPct * 100).toFixed(2) + '%';
+
+        // Comparativo
+        const compareBlock = document.getElementById('calc-compare-block');
+        if (stopActive) {
+            compareBlock.classList.remove('hidden');
+            document.getElementById('calc-ideal-val').innerText = this.fmt(ideal[days]);
+            document.getElementById('calc-real-val').innerText  = this.fmt(real[days]);
+            const diff = real[days] - ideal[days];
+            document.getElementById('calc-diff-val').innerText = (diff >= 0 ? '+' : '') + this.fmt(diff);
+        } else {
+            compareBlock.classList.add('hidden');
+        }
+
+        // Draw chart
+        this.drawCalcChart(mainSeries, ideal, stopActive, days);
+
+        document.getElementById('calc-results').classList.remove('hidden');
+        document.getElementById('calc-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    drawCalcChart(main, ideal, showBoth, days) {
+        const canvas = document.getElementById('calc-chart');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W   = canvas.offsetWidth || 300;
+        const H   = 120;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
+        ctx.scale(dpr, dpr);
+
+        // Sample points (max ~15 for clarity)
+        const step   = Math.max(1, Math.floor(days / 14));
+        const points = [];
+        for (let i = 0; i <= days; i += step) points.push(i);
+        if (points[points.length - 1] !== days) points.push(days);
+
+        const mainPts  = points.map(i => main[i]);
+        const idealPts = showBoth ? points.map(i => ideal[i]) : null;
+
+        const allVals = showBoth ? [...mainPts, ...idealPts] : mainPts;
+        const minV = Math.min(...allVals);
+        const maxV = Math.max(...allVals);
+        const range = maxV - minV || 1;
+
+        const pad = { t: 8, r: 8, b: 22, l: 50 };
+        const cw  = W - pad.l - pad.r;
+        const ch  = H - pad.t - pad.b;
+
+        const xOf = i  => pad.l + (i / (points.length - 1)) * cw;
+        const yOf = v  => pad.t + ch - ((v - minV) / range) * ch;
+
+        // Grid
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth   = 1;
+        for (let r = 0; r <= 3; r++) {
+            const y = pad.t + (ch / 3) * r;
+            ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
+        }
+
+        // Y labels
+        ctx.fillStyle  = 'rgba(107,114,128,0.9)';
+        ctx.font       = '9px JetBrains Mono, monospace';
+        ctx.textAlign  = 'right';
+        [0, 0.5, 1].forEach(t => {
+            const v = minV + range * (1 - t);
+            ctx.fillText('R$' + v.toFixed(0), pad.l - 4, pad.t + ch * t + 3);
+        });
+
+        const drawLine = (pts, color, dash = []) => {
+            // Extract rgba components for fill gradient
+            const fillColor = color.replace('0.9)', '0.15)');
+            const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
+            grad.addColorStop(0, fillColor);
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            // fill
+            ctx.beginPath();
+            ctx.moveTo(xOf(0), yOf(pts[0]));
+            pts.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
+            ctx.lineTo(xOf(pts.length - 1), pad.t + ch);
+            ctx.lineTo(xOf(0), pad.t + ch);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+            // line
+            ctx.setLineDash(dash);
+            ctx.beginPath();
+            ctx.moveTo(xOf(0), yOf(pts[0]));
+            pts.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
+            ctx.strokeStyle = color;
+            ctx.lineWidth   = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+            // dots
+            pts.forEach((v, i) => {
+                ctx.beginPath();
+                ctx.arc(xOf(i), yOf(v), 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.fill();
+            });
+        };
+
+        if (showBoth) {
+            drawLine(idealPts, 'rgba(16,217,160,0.9)', [4, 3]);
+            drawLine(mainPts,  'rgba(245,158,11,0.9)');
+        } else {
+            drawLine(mainPts, 'rgba(16,217,160,0.9)');
+        }
+
+        // X labels
+        ctx.fillStyle  = 'rgba(107,114,128,0.8)';
+        ctx.textAlign  = 'center';
+        ctx.font       = '9px JetBrains Mono, monospace';
+        [[0, 'Dia 1'], [points.length - 1, `Dia ${days}`]].forEach(([i, lbl]) => {
+            ctx.fillText(lbl, xOf(i), H - 4);
+        });
+    },
     getHistory() {
         try { return JSON.parse(localStorage.getItem('evoket_history') || '[]'); } catch(e) { return []; }
     },
