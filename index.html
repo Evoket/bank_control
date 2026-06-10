@@ -630,7 +630,8 @@
 <!-- HEADER -->
 <header id="global-header" class="hidden">
     <div>
-        <div class="header-brand">⬡ Evoket<span id="header-session-name"></span></div>
+        <div class="header-brand" id="header-period-label" style="font-size:0.85rem; font-weight:800; letter-spacing:0.06em;">⬡ Evoket</div>
+        <div id="header-session-name" style="font-size:0.6rem; color:var(--muted); margin-top:1px;"></div>
     </div>
     <div class="header-bank-wrap">
         <div class="header-bank-label">Banca</div>
@@ -670,16 +671,18 @@
 
 <!-- ═══ MODAL: EXIT CONFIRM ═══ -->
 <div id="modal-exit-confirm" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-exit-confirm')">
-    <div class="modal-box">
+    <div class="modal-box" style="text-align:center;">
         <div class="modal-handle"></div>
-        <div class="modal-title">Finalizar Sessão?</div>
-        <div class="modal-body" style="text-align:center;">
-            A banca atual será salva para a próxima sessão.<br>
-            Tem certeza que deseja encerrar?
+        <div style="font-size:2rem; margin-bottom:8px;" id="exit-modal-icon">🌙</div>
+        <div class="modal-title">Encerrar Sessão?</div>
+        <div style="font-size:0.78rem; color:var(--muted); margin-bottom:6px; line-height:1.6;">
+            O período <strong id="exit-period-name" style="color:var(--text)"></strong> será salvo automaticamente.<br>
+            A banca ficará registrada para a próxima sessão.
         </div>
+        <div style="font-size:0.72rem; font-family:var(--mono); color:var(--muted); margin-bottom:16px;" id="exit-modal-period"></div>
         <div class="modal-actions">
-            <button class="btn-red" onclick="app.finishDay()">Sim, finalizar</button>
-            <button class="btn-outline" onclick="app.closeModal('modal-exit-confirm')">Cancelar</button>
+            <button class="btn-red" onclick="app.finishDay()">Encerrar Sessão</button>
+            <button class="btn-outline" onclick="app.closeModal('modal-exit-confirm')" style="margin:0;">Cancelar</button>
         </div>
     </div>
 </div>
@@ -1155,8 +1158,8 @@
                         <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-days">0</div>
                     </div>
                     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;">
-                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Taxa de Acerto</div>
-                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-winrate">—</div>
+                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Sessões Registradas</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-sessions">0</div>
                     </div>
                     <div style="background:var(--surface2);border:1px solid rgba(16,217,160,0.25);border-radius:var(--radius-sm);padding:10px 12px;">
                         <div style="font-size:0.6rem;color:var(--green);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Total Greens</div>
@@ -1165,6 +1168,10 @@
                     <div style="background:var(--surface2);border:1px solid rgba(245,91,91,0.25);border-radius:var(--radius-sm);padding:10px 12px;">
                         <div style="font-size:0.6rem;color:var(--red);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Total Reds</div>
                         <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;color:var(--red);" id="h-reds">0</div>
+                    </div>
+                    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;grid-column:span 2;">
+                        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;">Taxa de Acerto</div>
+                        <div style="font-family:var(--mono);font-size:0.9rem;font-weight:700;" id="h-winrate">—</div>
                     </div>
                 </div>
 
@@ -1454,6 +1461,7 @@ const app = {
         if (el) el.innerText = this.randQuote(this.quotes);
         const cq = document.getElementById('calc-home-quote');
         if (cq) cq.innerText = this.randQuote(this.calcQuotes);
+        this.startPeriodTimer();
     },
 
     switchView(id) {
@@ -1502,10 +1510,49 @@ const app = {
     },
 
     // ─── HEADER ───
+    // ─── PERIOD DETECTION ───
+    getPeriod() {
+        const h = new Date().getHours();
+        const m = new Date().getMinutes();
+        const mins = h * 60 + m;
+        // Manhã: 05:31–12:30 → 331–750
+        // Tarde: 12:31–18:30 → 751–1110
+        // Noite: 18:31–05:30 → 1111–1439 + 0–330
+        if (mins >= 331 && mins <= 750)  return { label: 'Manhã', icon: '☀️', key: 'manha' };
+        if (mins >= 751 && mins <= 1110) return { label: 'Tarde', icon: '🌤️', key: 'tarde' };
+        return { label: 'Noite', icon: '🌙', key: 'noite' };
+    },
+
+    getOperDate() {
+        // Noite after midnight (00:00–05:30) counts as previous calendar day
+        const now  = new Date();
+        const mins = now.getHours() * 60 + now.getMinutes();
+        if (mins <= 330) { // before 05:31 → belongs to yesterday
+            const d = new Date(now); d.setDate(d.getDate() - 1);
+            return d.toLocaleDateString('pt-BR');
+        }
+        return now.toLocaleDateString('pt-BR');
+    },
+
+    startPeriodTimer() {
+        // Update header every minute to catch period transitions
+        clearInterval(this._periodTimer);
+        this._periodTimer = setInterval(() => this.updateHeader(), 60000);
+    },
+
     updateHeader() {
         document.getElementById('header-bank-value').innerText = this.fmt(this.data.currentBank);
         const name = document.getElementById('header-session-name');
         if (name) name.innerText = this.data.dayName || '';
+        // Update period label
+        const period = this.getPeriod();
+        const lbl = document.getElementById('header-period-label');
+        if (lbl) lbl.innerText = `${period.icon} ${period.label.toUpperCase()}`;
+        // Pre-fill exit modal
+        const ep = document.getElementById('exit-period-name');
+        if (ep) ep.innerText = `${period.icon} ${period.label}`;
+        const eperiod = document.getElementById('exit-modal-period');
+        if (eperiod) eperiod.innerText = this.getOperDate();
     },
 
     // ─── SESSION ───
@@ -1514,7 +1561,7 @@ const app = {
         const bank = this.getMoneyValue('input-start-bank');
         const comm = document.getElementById('input-commission').checked;
         if (!name || bank <= 0) return this.openModal('modal-campo-vazio');
-        this.data = { ...this.data, dayName: name, startBank: bank, currentBank: bank, commissionActive: comm, stats: { entries: 0, greens: 0, reds: 0 } };
+        this.data = { ...this.data, dayName: name, startBank: bank, currentBank: bank, commissionActive: comm, stats: { entries: 0, greens: 0, reds: 0 }, operLog: [] };
         this.saveToStorage();
         this.updateHeader();
         this.switchView('view-start');
@@ -1694,6 +1741,12 @@ const app = {
         let val = this.getMoneyValue('start-result-val');
         if (val <= 0) return this.openModal('modal-campo-vazio');
         this.data.stats.entries++;
+        const now    = new Date();
+        const period = this.getPeriod();
+        const date   = this.getOperDate();
+        // Live-record every operation into intraday log
+        if (!this.data.operLog) this.data.operLog = [];
+        this.data.operLog.push({ type, val: type === 'GREEN' ? val * (this.data.commissionActive ? 0.96 : 1) : -val, date, period: period.key, time: now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) });
         if (type === 'GREEN') {
             this.data.stats.greens++;
             if (this.data.commissionActive) val *= 0.96;
@@ -1793,6 +1846,12 @@ const app = {
 
     executeCard(ctx, index, type, val) {
         this.data.stats.entries++;
+        const now    = new Date();
+        const period = this.getPeriod();
+        const date   = this.getOperDate();
+        const netVal = type === 'GREEN' ? val * (this.data.commissionActive ? 0.96 : 1) : -val;
+        if (!this.data.operLog) this.data.operLog = [];
+        this.data.operLog.push({ type, val: netVal, date, period: period.key, time: now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) });
         if (type === 'GREEN') {
             this.data.stats.greens++;
             if (this.data.commissionActive) val *= 0.96;
@@ -2176,23 +2235,109 @@ const app = {
     },
     saveHistory(h) { localStorage.setItem('evoket_history', JSON.stringify(h)); },
 
+    groupByDay(h) {
+        const days = {};
+        h.forEach(s => {
+            if (!days[s.date]) days[s.date] = [];
+            days[s.date].push(s);
+        });
+        return Object.entries(days)
+            .sort((a, b) => {
+                const p = d => d.split('/').reverse().join('-');
+                return p(b[0]) > p(a[0]) ? 1 : -1;
+            })
+            .map(([date, sessions]) => ({
+                date, sessions,
+                totalEntries: sessions.reduce((s, x) => s + x.entries, 0),
+                totalGreens:  sessions.reduce((s, x) => s + x.greens,  0),
+                totalReds:    sessions.reduce((s, x) => s + x.reds,    0),
+                totalPL:      sessions.reduce((s, x) => s + x.pl,      0),
+                startBank:    sessions[sessions.length - 1].startBank,
+                endBank:      sessions[0].endBank,
+            }));
+    },
+
+    // ─── AUTO-PERIOD HISTORY RECORDING ───
+    // Build period breakdown from operLog for a given date
+    buildPeriodBreakdown(operLog, date) {
+        const periodMeta = {
+            manha: { label: 'Manhã', icon: '☀️' },
+            tarde: { label: 'Tarde', icon: '🌤️' },
+            noite: { label: 'Noite', icon: '🌙' }
+        };
+        const periods = {};
+        operLog.filter(o => o.date === date).forEach(o => {
+            if (!periods[o.period]) periods[o.period] = { entries: 0, greens: 0, reds: 0, pl: 0 };
+            periods[o.period].entries++;
+            if (o.type === 'GREEN') periods[o.period].greens++;
+            else periods[o.period].reds++;
+            periods[o.period].pl += o.val;
+        });
+        return Object.entries(periods).map(([key, data]) => ({
+            key, ...data,
+            label: periodMeta[key]?.label || key,
+            icon:  periodMeta[key]?.icon  || '📋'
+        }));
+    },
+
     saveSessionToHistory() {
-        const { startBank, currentBank, dayName, stats } = this.data;
+        const { startBank, currentBank, dayName, stats, operLog } = this.data;
         const diff = currentBank - startBank;
         const pct  = startBank > 0 ? (diff / startBank) * 100 : 0;
+        const date = this.getOperDate();
+        const period = this.getPeriod();
+
+        // Build period breakdown from operation log
+        const periods = operLog && operLog.length
+            ? this.buildPeriodBreakdown(operLog, date)
+            : [{ key: period.key, label: period.label, icon: period.icon, entries: stats.entries, greens: stats.greens, reds: stats.reds, pl: diff }];
+
         const record = {
             id: Date.now(),
-            date: new Date().toLocaleDateString('pt-BR'),
+            date,
             name: dayName || 'Sessão',
+            period: period.label,
+            icon:   period.icon,
             startBank, endBank: currentBank,
             pl: diff, pct,
             entries: stats.entries,
-            greens: stats.greens,
-            reds: stats.reds
+            greens:  stats.greens,
+            reds:    stats.reds,
+            isDay:   true,
+            periods  // breakdown by period
         };
+
+        // Smart merge: if same date already in history, merge periods
         const h = this.getHistory();
-        h.unshift(record);
+        const existIdx = h.findIndex(s => s.date === date);
+        if (existIdx >= 0) {
+            const existing = h[existIdx];
+            // Merge periods: update existing or add new
+            const merged = [...(existing.periods || [])];
+            periods.forEach(p => {
+                const idx = merged.findIndex(m => m.key === p.key);
+                if (idx >= 0) {
+                    merged[idx].entries += p.entries;
+                    merged[idx].greens  += p.greens;
+                    merged[idx].reds    += p.reds;
+                    merged[idx].pl      += p.pl;
+                } else {
+                    merged.push(p);
+                }
+            });
+            existing.endBank  = currentBank;
+            existing.pl       = currentBank - existing.startBank;
+            existing.pct      = existing.startBank > 0 ? (existing.pl / existing.startBank * 100) : 0;
+            existing.entries += stats.entries;
+            existing.greens  += stats.greens;
+            existing.reds    += stats.reds;
+            existing.periods  = merged;
+            h[existIdx] = existing;
+        } else {
+            h.unshift(record);
+        }
         this.saveHistory(h);
+
         const life = JSON.parse(localStorage.getItem('evoket_lifetime') || '{}');
         if (!life.initialBank) life.initialBank = startBank;
         life.totalEntries = (life.totalEntries || 0) + stats.entries;
@@ -2210,164 +2355,176 @@ const app = {
     },
 
     renderHistoryTab() {
-        const h = this.getHistory();
+        const h    = this.getHistory();
         const life = JSON.parse(localStorage.getItem('evoket_lifetime') || '{}');
         const currentBank = this.data.currentBank;
-        const initBank = life.initialBank || this.data.startBank;
-        const totalPL = currentBank - initBank;
-        const roi = initBank > 0 ? (totalPL / initBank) * 100 : 0;
-        const totalWR = (life.totalGreens || 0) + (life.totalReds || 0);
-        const wr = totalWR > 0 ? ((life.totalGreens / totalWR) * 100).toFixed(1) + '%' : '—';
+        const initBank    = life.initialBank || this.data.startBank;
+        const totalPL     = currentBank - initBank;
+        const roi         = initBank > 0 ? (totalPL / initBank) * 100 : 0;
+        const totalWR     = (life.totalGreens || 0) + (life.totalReds || 0);
+        const wr          = totalWR > 0 ? ((life.totalGreens / totalWR) * 100).toFixed(1) + '%' : '\u2014';
+        const uniqueDates = [...new Set(h.map(s => s.date))];
 
         document.getElementById('h-start-bank').innerText = this.fmt(initBank);
         document.getElementById('h-curr-bank').innerText  = this.fmt(currentBank);
         document.getElementById('h-total-pl').innerHTML   = `<span style="color:${totalPL >= 0 ? 'var(--green)' : 'var(--red)'}">${(totalPL >= 0 ? '+' : '') + this.fmt(totalPL)}</span>`;
         document.getElementById('h-roi').innerHTML        = `<span style="color:${roi >= 0 ? 'var(--accent)' : 'var(--red)'}">${(roi >= 0 ? '+' : '') + roi.toFixed(2) + '%'}</span>`;
-        document.getElementById('h-days').innerText       = h.length;
+        document.getElementById('h-days').innerText       = uniqueDates.length;
+        document.getElementById('h-sessions').innerText   = h.length;
         document.getElementById('h-winrate').innerText    = wr;
         document.getElementById('h-greens').innerText     = life.totalGreens || 0;
         document.getElementById('h-reds').innerText       = life.totalReds   || 0;
 
-        this.renderChart(h, initBank);
+        this.renderChart(h, initBank, uniqueDates);
         this.renderSessionList(h);
     },
 
-    renderChart(h, initBank) {
+    renderChart(h, initBank, uniqueDates) {
         const canvas = document.getElementById('history-chart');
         const empty  = document.getElementById('chart-empty');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-
         if (!h.length) {
-            canvas.style.display = 'none';
-            empty.style.display  = 'block';
-            return;
+            canvas.style.display = 'none'; empty.style.display = 'block'; return;
         }
-        canvas.style.display = 'block';
-        empty.style.display  = 'none';
+        canvas.style.display = 'block'; empty.style.display = 'none';
 
-        const points = [initBank, ...h.slice().reverse().map(s => s.endBank)];
-        const labels = ['Início', ...h.slice().reverse().map(s => s.date)];
+        const days = uniqueDates || [...new Set(h.map(s => s.date))];
+        const dayBank = {};
+        h.forEach(s => { if (!dayBank[s.date] || s.id > dayBank[s.date].id) dayBank[s.date] = s; });
+        const sortedDays = [...days].sort((a,b) => {
+            const p = d => d.split('/').reverse().join('-');
+            return p(a) < p(b) ? -1 : 1;
+        });
 
-        const W = canvas.offsetWidth || 300;
-        const H = 110;
+        const points = [initBank, ...sortedDays.map(d => dayBank[d].endBank)];
+        const labels = ['Início', ...sortedDays];
+
+        const W   = canvas.offsetWidth || 300;
+        const H   = 110;
         const dpr = window.devicePixelRatio || 1;
-        canvas.width  = W * dpr;
-        canvas.height = H * dpr;
+        canvas.width  = W * dpr; canvas.height = H * dpr;
         ctx.scale(dpr, dpr);
 
         const pad = { t: 10, r: 10, b: 24, l: 46 };
         const cw = W - pad.l - pad.r;
         const ch = H - pad.t - pad.b;
-
-        const minV = Math.min(...points);
-        const maxV = Math.max(...points);
+        const minV = Math.min(...points), maxV = Math.max(...points);
         const range = maxV - minV || 1;
-
         const xOf = i => pad.l + (i / (points.length - 1)) * cw;
         const yOf = v => pad.t + ch - ((v - minV) / range) * ch;
 
-        // Grid
-        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
         for (let i = 0; i <= 3; i++) {
             const y = pad.t + (ch / 3) * i;
             ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l + cw, y); ctx.stroke();
         }
-
-        // Y labels
-        ctx.fillStyle = 'rgba(107,114,128,0.8)';
-        ctx.font = '9px JetBrains Mono, monospace';
-        ctx.textAlign = 'right';
+        ctx.fillStyle = 'rgba(107,114,128,0.8)'; ctx.font = '9px JetBrains Mono, monospace'; ctx.textAlign = 'right';
         [0, 0.5, 1].forEach(t => {
-            const v = minV + range * (1 - t);
-            ctx.fillText('R$' + v.toFixed(0), pad.l - 4, pad.t + ch * t + 3);
+            ctx.fillText('R$' + (minV + range * (1 - t)).toFixed(0), pad.l - 4, pad.t + ch * t + 3);
         });
 
-        const isUp = points[points.length - 1] >= points[0];
-        const lineColor = isUp ? 'rgba(16,217,160,0.9)' : 'rgba(245,91,91,0.9)';
+        const isUp = points[points.length-1] >= points[0];
+        const lineClr = isUp ? 'rgba(16,217,160,0.9)' : 'rgba(245,91,91,0.9)';
+        const fillClr = isUp ? 'rgba(16,217,160,0.18)' : 'rgba(245,91,91,0.15)';
 
-        // Gradient fill
         const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + ch);
-        grad.addColorStop(0, isUp ? 'rgba(16,217,160,0.22)' : 'rgba(245,91,91,0.18)');
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.beginPath();
-        ctx.moveTo(xOf(0), yOf(points[0]));
-        points.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
-        ctx.lineTo(xOf(points.length - 1), pad.t + ch);
-        ctx.lineTo(xOf(0), pad.t + ch);
-        ctx.closePath();
-        ctx.fillStyle = grad;
-        ctx.fill();
+        grad.addColorStop(0, fillClr); grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath(); ctx.moveTo(xOf(0), yOf(points[0]));
+        points.forEach((v,i) => { if (i>0) ctx.lineTo(xOf(i), yOf(v)); });
+        ctx.lineTo(xOf(points.length-1), pad.t+ch); ctx.lineTo(xOf(0), pad.t+ch);
+        ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
 
-        // Line
-        ctx.beginPath();
-        ctx.moveTo(xOf(0), yOf(points[0]));
-        points.forEach((v, i) => { if (i > 0) ctx.lineTo(xOf(i), yOf(v)); });
-        ctx.strokeStyle = lineColor;
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(xOf(0), yOf(points[0]));
+        points.forEach((v,i) => { if (i>0) ctx.lineTo(xOf(i), yOf(v)); });
+        ctx.strokeStyle = lineClr; ctx.lineWidth = 2; ctx.stroke();
 
-        // Dots
-        points.forEach((v, i) => {
-            ctx.beginPath();
-            ctx.arc(xOf(i), yOf(v), 3, 0, Math.PI * 2);
-            ctx.fillStyle = lineColor;
-            ctx.fill();
+        points.forEach((v,i) => {
+            ctx.beginPath(); ctx.arc(xOf(i), yOf(v), 3, 0, Math.PI*2);
+            ctx.fillStyle = lineClr; ctx.fill();
         });
-
-        // X labels first + last
-        ctx.fillStyle = 'rgba(107,114,128,0.8)';
-        ctx.textAlign = 'center';
-        [[0, labels[0]], [points.length - 1, labels[points.length - 1]]].forEach(([i, lbl]) => {
-            ctx.fillText(lbl, xOf(i), H - 4);
+        ctx.fillStyle = 'rgba(107,114,128,0.8)'; ctx.textAlign = 'center';
+        [[0, labels[0]], [points.length-1, labels[points.length-1]]].forEach(([i,lbl]) => {
+            ctx.fillText(lbl, xOf(i), H-4);
         });
     },
 
     renderSessionList(h) {
         const c = document.getElementById('session-list-container');
-        if (!h.length) {
+        const days = this.groupByDay(h);
+        if (!days.length) {
             c.innerHTML = '<div style="text-align:center;font-size:0.78rem;color:var(--muted);padding:20px 0;">Nenhuma sessão encerrada ainda.</div>';
             return;
         }
         c.innerHTML = '';
-        h.forEach(s => {
+        days.forEach(day => {
             const row = document.createElement('div');
             row.className = 'session-row';
+            const plColor = day.totalPL >= 0 ? 'var(--green)' : 'var(--red)';
+            const sign = day.totalPL >= 0 ? '+' : '';
+            const pct  = day.startBank > 0 ? (day.totalPL / day.startBank * 100).toFixed(2) : '0.00';
             row.innerHTML = `
                 <div>
-                    <div class="session-row-name">${s.name}</div>
-                    <div class="session-row-date">${s.date} · ${s.entries} entradas</div>
+                    <div class="session-row-name">${day.date}</div>
+                    <div class="session-row-date">${day.sessions.length} período${day.sessions.length>1?'s':''} · ${day.totalEntries} entradas</div>
                 </div>
                 <div>
-                    <div class="session-row-pl" style="color:${s.pl >= 0 ? 'var(--green)' : 'var(--red)'}">
-                        ${s.pl >= 0 ? '+' : ''}${this.fmt(s.pl)}
-                    </div>
-                    <div class="session-row-meta">${s.pl >= 0 ? '+' : ''}${s.pct.toFixed(2)}%</div>
-                </div>
-            `;
-            row.addEventListener('click', () => this.openSessionDetail(s));
+                    <div class="session-row-pl" style="color:${plColor}">${sign}${this.fmt(day.totalPL)}</div>
+                    <div class="session-row-meta">${sign}${pct}%</div>
+                </div>`;
+            row.addEventListener('click', () => this.openDayDetail(day));
             c.appendChild(row);
         });
     },
 
-    openSessionDetail(s) {
-        document.getElementById('detail-date').innerText = `${s.name} — ${s.date}`;
-        const wr = (s.greens + s.reds) > 0 ? (s.greens / (s.greens + s.reds) * 100).toFixed(1) + '%' : '—';
+    openDayDetail(day) {
+        document.getElementById('detail-date').innerText = day.date;
+        const wr = (day.totalGreens + day.totalReds) > 0
+            ? (day.totalGreens / (day.totalGreens + day.totalReds) * 100).toFixed(1) + '%' : '\u2014';
+
+        // Support both new (periods[]) and legacy (sessions[]) format
+        const periodsData = day.periods ||
+            (day.sessions || []).reduce((acc, s) => {
+                const k = s.key || (s.period ? s.period.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'') : 'noite');
+                const e = acc.find(a => a.key === k);
+                if (e) { e.entries += s.entries; e.greens += s.greens; e.reds += s.reds; e.pl += s.pl; }
+                else acc.push({ key: k, label: s.period || s.name, icon: s.icon || '\ud83d\udccb', entries: s.entries, greens: s.greens, reds: s.reds, pl: s.pl });
+                return acc;
+            }, []);
+
+        const order = { manha: 0, tarde: 1, noite: 2 };
+        const sorted = [...periodsData].sort((a,b) => (order[a.key]??3) - (order[b.key]??3));
+
+        const periodRows = sorted.map(p => {
+            const sign = p.pl >= 0 ? '+' : ''; const clr = p.pl >= 0 ? 'var(--green)' : 'var(--red)';
+            return `<li style="flex-direction:column;align-items:flex-start;gap:4px;">
+                <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+                    <span style="font-size:0.85rem;font-weight:700;">${p.icon} ${p.label}</span>
+                    <span style="font-family:var(--mono);font-weight:700;color:${clr};">${sign}${this.fmt(p.pl)}</span>
+                </div>
+                <div style="font-size:0.68rem;color:var(--muted);">${p.entries} entradas \u00b7 ${p.greens} greens \u00b7 ${p.reds} reds</div>
+            </li>`;
+        }).join('');
+
         document.getElementById('detail-list').innerHTML = `
-            <li><span class="sum-key">Banca Inicial</span><span class="sum-val">${this.fmt(s.startBank)}</span></li>
-            <li><span class="sum-key">Banca Final</span><span class="sum-val">${this.fmt(s.endBank)}</span></li>
-            <li><span class="sum-key">Entradas</span><span class="sum-val">${s.entries}</span></li>
-            <li><span class="sum-key" style="color:var(--green)">Greens ✅</span><span class="sum-val">${s.greens}</span></li>
-            <li><span class="sum-key" style="color:var(--red)">Reds ❌</span><span class="sum-val">${s.reds}</span></li>
+            <li><span class="sum-key">Banca Abertura</span><span class="sum-val">${this.fmt(day.startBank)}</span></li>
+            <li><span class="sum-key">Banca Fechamento</span><span class="sum-val">${this.fmt(day.endBank)}</span></li>
+            <li><span class="sum-key">Total Entradas</span><span class="sum-val">${day.totalEntries}</span></li>
+            <li><span class="sum-key" style="color:var(--green)">Greens ✅</span><span class="sum-val">${day.totalGreens}</span></li>
+            <li><span class="sum-key" style="color:var(--red)">Reds ❌</span><span class="sum-val">${day.totalReds}</span></li>
             <li><span class="sum-key">Taxa de Acerto</span><span class="sum-val">${wr}</span></li>
-        `;
-        const plEl  = document.getElementById('detail-pl');
+            ${sorted.length ? `<li style="flex-direction:column;align-items:flex-start;gap:8px;padding-top:12px;border-top:1px solid var(--border);">
+                <div style="font-size:0.65rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);">Períodos do dia</div>
+                <ul class="sum-list" style="width:100%;">${periodRows}</ul>
+            </li>` : ''}`;
+
+        const pct = day.startBank > 0 ? (day.totalPL / day.startBank * 100) : 0;
+        const plEl = document.getElementById('detail-pl');
         const pctEl = document.getElementById('detail-pct');
-        plEl.innerText  = (s.pl >= 0 ? '+' : '') + this.fmt(s.pl);
-        pctEl.innerText = (s.pl >= 0 ? '+' : '') + s.pct.toFixed(2) + '%';
-        plEl.style.color  = s.pl >= 0 ? 'var(--green)' : 'var(--red)';
-        pctEl.style.color = s.pl >= 0 ? 'var(--green)' : 'var(--red)';
+        plEl.innerText  = (day.totalPL >= 0 ? '+' : '') + this.fmt(day.totalPL);
+        pctEl.innerText = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+        plEl.style.color  = day.totalPL >= 0 ? 'var(--green)' : 'var(--red)';
+        pctEl.style.color = day.totalPL >= 0 ? 'var(--green)' : 'var(--red)';
         this.openModal('modal-session-detail');
     },
 
