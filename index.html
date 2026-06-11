@@ -622,7 +622,94 @@
         }
         .btn-load:hover { border-color: var(--accent); color: var(--accent); }
 
-        .divider { height: 1px; background: var(--border); margin: 16px 0; }
+        /* ─── LIGHT MODE ─── */
+        body.light-mode {
+            --bg: #f0f2f8;
+            --surface: #ffffff;
+            --surface2: #e8ecf5;
+            --surface3: #dde2ef;
+            --border: rgba(0,0,0,0.08);
+            --border2: rgba(0,0,0,0.15);
+            --text: #1a1e2e;
+            --muted: #6b7280;
+        }
+        body.light-mode #global-header {
+            background: rgba(240,242,248,0.95);
+        }
+        body.light-mode input[type="text"],
+        body.light-mode input[type="tel"],
+        body.light-mode select,
+        body.light-mode input[type="number"] {
+            color: var(--text);
+        }
+        body.light-mode .home-logo-mark {
+            background: linear-gradient(135deg, #4a6fd4 0%, #6b2fc9 100%);
+            box-shadow: 0 8px 32px rgba(74,111,212,0.4);
+        }
+
+        /* ─── SETTINGS BTN ─── */
+        .btn-settings {
+            width: 34px; height: 34px;
+            border-radius: var(--radius-sm);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; flex-shrink: 0; padding: 0;
+            font-size: 1rem;
+        }
+        .btn-settings:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ─── LOCKED FIELD ─── */
+        .field-locked {
+            position: relative;
+        }
+        .field-locked input {
+            background: rgba(91,138,245,0.06) !important;
+            border-color: rgba(91,138,245,0.25) !important;
+            color: var(--accent) !important;
+            pointer-events: none;
+        }
+        .lock-badge {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            font-size: 0.65rem; font-weight: 700; color: var(--accent);
+            background: rgba(91,138,245,0.12); padding: 2px 7px; border-radius: 99px;
+            pointer-events: none;
+        }
+
+        /* ─── SETTINGS SECTIONS ─── */
+        .settings-section {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px; margin-bottom: 16px;
+        }
+        .settings-section:last-child { border-bottom: none; margin-bottom: 0; }
+        .settings-section-title {
+            font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em;
+            text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+        }
+        .settings-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+        }
+        .settings-row:last-child { border-bottom: none; }
+        .settings-row-label { font-size: 0.82rem; font-weight: 600; }
+        .settings-row-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+        /* Toggle switch */
+        .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+        .toggle {
+            width: 44px; height: 24px; border-radius: 12px;
+            background: var(--surface2); border: 1px solid var(--border);
+            position: relative; cursor: pointer; transition: background 0.25s, border-color 0.25s;
+            flex-shrink: 0;
+        }
+        .toggle.on { background: var(--accent); border-color: var(--accent); }
+        .toggle::after {
+            content: ''; position: absolute; width: 18px; height: 18px;
+            background: white; border-radius: 50%; top: 2px; left: 3px;
+            transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .toggle.on::after { left: 23px; }
     </style>
 </head>
 <body>
@@ -638,7 +725,8 @@
         <div class="header-bank-value" id="header-bank-value">R$0,00</div>
     </div>
     <div class="header-actions">
-        <button class="btn-icon" onclick="app.showSessionSummary()">📊 Resumo</button>
+        <button class="btn-settings" onclick="app.showSessionSummary()" title="Resumo">📊</button>
+        <button class="btn-settings" onclick="app.openSettings()" title="Configurações">⚙️</button>
     </div>
     <!-- Door / exit button -->
     <button class="btn-exit" onclick="app.openModal('modal-exit-confirm')" title="Finalizar sessão">
@@ -702,12 +790,18 @@
         <div class="card">
             <div class="card-title">Nova Sessão</div>
             <label>Nome da Sessão</label>
-            <input type="text" id="input-day-name" placeholder="Ex: Sessão Manhã">
+            <div class="field-locked" id="wrap-day-name">
+                <input type="text" id="input-day-name" placeholder="Ex: Sessão Manhã">
+                <span class="lock-badge hidden" id="lock-day-name">🔒</span>
+            </div>
 
             <label>Banca Inicial (R$)</label>
-            <input type="tel" id="input-start-bank" placeholder="R$ 0,00" oninput="app.maskCurrency(this)">
+            <div class="field-locked" id="wrap-start-bank">
+                <input type="tel" id="input-start-bank" placeholder="R$0,00" oninput="app.maskCurrency(this)">
+                <span class="lock-badge hidden" id="lock-start-bank">🔒</span>
+            </div>
 
-            <button class="btn-load" onclick="app.loadLastSessionData()">📂 Carregar banca anterior</button>
+            <button class="btn-load" id="btn-load-prev" onclick="app.loadLastSessionData()">📂 Carregar banca anterior</button>
 
             <label onclick="document.getElementById('input-commission').click()" style="cursor:pointer">
                 <div class="checkbox-wrapper" style="margin-bottom:0;">
@@ -1213,7 +1307,75 @@
     </div>
 </div>
 
-<!-- ═══ MODAL: RESET CONFIRM ═══ -->
+<!-- ═══ MODAL: SETTINGS ═══ -->
+<div id="modal-settings" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-settings')">
+    <div class="modal-box" style="max-height:88vh; overflow-y:auto; padding-bottom:28px;">
+        <div class="modal-handle"></div>
+        <div class="modal-title" style="margin-bottom:16px;">⚙️ Configurações</div>
+
+        <!-- Aparência -->
+        <div class="settings-section">
+            <div class="settings-section-title">Aparência</div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label" id="theme-label">🌙 Modo Escuro</div>
+                    <div class="settings-row-sub">Tema atual da interface</div>
+                </div>
+                <div class="toggle" id="toggle-theme" onclick="app.toggleTheme()"></div>
+            </div>
+        </div>
+
+        <!-- Nome da Sessão -->
+        <div class="settings-section">
+            <div class="settings-section-title">Sessão Atual</div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label">✏️ Alterar Nome da Sessão</div>
+                    <div class="settings-row-sub" id="settings-session-name-preview">—</div>
+                </div>
+            </div>
+            <input type="text" id="settings-session-name" placeholder="Novo nome da sessão" style="margin-top:8px; margin-bottom:4px;">
+            <button class="btn-outline btn-sm" onclick="app.applySessionName()" style="margin:0; font-size:0.72rem; padding:8px;">Salvar Nome</button>
+        </div>
+
+        <!-- Comissão -->
+        <div class="settings-section">
+            <div class="settings-section-title">Exchange</div>
+            <div class="settings-row">
+                <div>
+                    <div class="settings-row-label">Cobrar Comissão</div>
+                    <div class="settings-row-sub">4% descontado nos Greens</div>
+                </div>
+                <div class="toggle" id="toggle-commission" onclick="app.toggleCommission()"></div>
+            </div>
+        </div>
+
+        <!-- Ajuste de Saldo -->
+        <div class="settings-section">
+            <div class="settings-section-title">Ajuste de Saldo</div>
+            <div style="font-size:0.75rem; color:var(--muted); margin-bottom:12px; line-height:1.5;">
+                Registre aportes ou saques sem comprometer o histórico de operações.
+            </div>
+            <label>Valor (R$)</label>
+            <input type="tel" id="settings-adjust-val" placeholder="R$0,00" oninput="app.maskCurrency(this)" style="margin-bottom:8px;">
+            <label>Motivo (opcional)</label>
+            <input type="text" id="settings-adjust-reason" placeholder="Ex: Aporte realizado" style="margin-bottom:12px;">
+            <div class="btn-row">
+                <button class="btn-green btn-sm" onclick="app.adjustBalance('aporte')" style="margin:0; font-size:0.72rem; padding:10px;">+ Aporte</button>
+                <button class="btn-red btn-sm" onclick="app.adjustBalance('saque')" style="margin:0; font-size:0.72rem; padding:10px;">− Saque</button>
+            </div>
+            <div id="settings-adjust-feedback" style="margin-top:10px; font-size:0.72rem; text-align:center; min-height:18px;"></div>
+        </div>
+
+        <!-- Reset -->
+        <div class="settings-section">
+            <div class="settings-section-title">Dados</div>
+            <button class="btn-red btn-sm" onclick="app.closeModal('modal-settings'); app.confirmResetHistory();" style="margin:0; font-size:0.72rem; width:100%;">🗑 Apagar Histórico Geral</button>
+        </div>
+
+        <button class="btn-outline" onclick="app.closeModal('modal-settings')" style="margin-top:4px;">Fechar</button>
+    </div>
+</div>
 <div id="modal-reset-confirm" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-reset-confirm')">
     <div class="modal-box" style="text-align:center;">
         <div class="modal-handle"></div>
@@ -1456,6 +1618,7 @@ const app = {
 
     // ─── INIT ───
     init() {
+        this.applyTheme();
         this.loadFromStorage();
         const el = document.getElementById('home-quote');
         if (el) el.innerText = this.randQuote(this.quotes);
@@ -1571,10 +1734,152 @@ const app = {
         const lb = localStorage.getItem('evoket_last_bank');
         const ln = localStorage.getItem('evoket_last_name');
         if (!lb) return this.openModal('modal-campo-vazio');
-        const el = document.getElementById('input-start-bank');
-        el.value = Math.round(parseFloat(lb) * 100).toString();
-        this.maskCurrency(el);
-        if (ln) document.getElementById('input-day-name').value = ln;
+
+        // Fill and LOCK bank value
+        const bankEl = document.getElementById('input-start-bank');
+        bankEl.value = Math.round(parseFloat(lb) * 100).toString();
+        this.maskCurrency(bankEl);
+        bankEl.readOnly = true;
+        document.getElementById('lock-start-bank').classList.remove('hidden');
+
+        // Fill and LOCK session name
+        const nameEl = document.getElementById('input-day-name');
+        if (ln) nameEl.value = ln;
+        nameEl.readOnly = true;
+        document.getElementById('lock-day-name').classList.remove('hidden');
+
+        // Hide the load button to avoid re-loading
+        document.getElementById('btn-load-prev').style.display = 'none';
+    },
+
+    unlockSessionName() {
+        const nameEl = document.getElementById('input-day-name');
+        nameEl.readOnly = false;
+        nameEl.focus();
+        document.getElementById('lock-day-name').classList.add('hidden');
+        document.getElementById('unlock-name-row').style.display = 'none';
+    },
+
+    // ─── SETTINGS ───
+    openSettings() {
+        // Sync toggles with current state
+        const isDark = !document.body.classList.contains('light-mode');
+        const commToggle = document.getElementById('toggle-commission');
+        const themeToggle = document.getElementById('toggle-theme');
+        const themeLabel  = document.getElementById('theme-label');
+
+        if (themeToggle) {
+            themeToggle.className = 'toggle' + (isDark ? '' : ' on');
+            themeLabel.innerText  = isDark ? '🌙 Modo Escuro' : '☀️ Modo Claro';
+        }
+        if (commToggle) {
+            commToggle.className = 'toggle' + (this.data.commissionActive ? ' on' : '');
+        }
+
+        // Session name preview
+        const preview = document.getElementById('settings-session-name-preview');
+        if (preview) preview.innerText = this.data.dayName || '—';
+        const nameInput = document.getElementById('settings-session-name');
+        if (nameInput) nameInput.value = this.data.dayName || '';
+
+        // Clear adjust fields
+        const av = document.getElementById('settings-adjust-val');
+        const ar = document.getElementById('settings-adjust-reason');
+        const fb = document.getElementById('settings-adjust-feedback');
+        if (av) av.value = '';
+        if (ar) ar.value = '';
+        if (fb) fb.innerText = '';
+
+        this.openModal('modal-settings');
+    },
+
+    toggleTheme() {
+        const body = document.body;
+        const toggle = document.getElementById('toggle-theme');
+        const label  = document.getElementById('theme-label');
+        body.classList.toggle('light-mode');
+        const isLight = body.classList.contains('light-mode');
+        toggle.className = 'toggle' + (isLight ? ' on' : '');
+        label.innerText  = isLight ? '☀️ Modo Claro' : '🌙 Modo Escuro';
+        localStorage.setItem('evoket_theme', isLight ? 'light' : 'dark');
+    },
+
+    applyTheme() {
+        const saved = localStorage.getItem('evoket_theme');
+        if (saved === 'light') document.body.classList.add('light-mode');
+    },
+
+    toggleCommission() {
+        this.data.commissionActive = !this.data.commissionActive;
+        const toggle = document.getElementById('toggle-commission');
+        if (toggle) toggle.className = 'toggle' + (this.data.commissionActive ? ' on' : '');
+        // Update home checkbox too if visible
+        const cb = document.getElementById('input-commission');
+        if (cb) cb.checked = this.data.commissionActive;
+        this.saveToStorage();
+    },
+
+    applySessionName() {
+        const val = document.getElementById('settings-session-name')?.value.trim();
+        if (!val) return;
+        this.data.dayName = val;
+        const preview = document.getElementById('settings-session-name-preview');
+        if (preview) preview.innerText = val;
+        this.updateHeader();
+        this.saveToStorage();
+        const fb = document.getElementById('settings-adjust-feedback');
+        if (fb) { fb.innerText = '✓ Nome atualizado'; fb.style.color = 'var(--green)'; setTimeout(() => fb.innerText = '', 2000); }
+    },
+
+    adjustBalance(type) {
+        const val = this.getMoneyValue('settings-adjust-val');
+        const reason = document.getElementById('settings-adjust-reason')?.value.trim() || (type === 'aporte' ? 'Aporte' : 'Saque');
+        const fb = document.getElementById('settings-adjust-feedback');
+        if (val <= 0) { if (fb) { fb.innerText = 'Informe o valor.'; fb.style.color = 'var(--red)'; } return; }
+
+        const sign  = type === 'aporte' ? 1 : -1;
+        const delta = val * sign;
+        this.data.currentBank = Math.max(0, this.data.currentBank + delta);
+        this.updateHeader();
+        this.updateGauge();
+        this.saveToStorage();
+
+        // Register in history as a balance adjustment record
+        const h = this.getHistory();
+        const date = this.getOperDate ? this.getOperDate() : new Date().toLocaleDateString('pt-BR');
+        const adjRecord = {
+            id: Date.now(),
+            date,
+            name: reason,
+            period: type === 'aporte' ? 'Aporte' : 'Saque',
+            icon:   type === 'aporte' ? '💰' : '💸',
+            startBank: this.data.currentBank - delta,
+            endBank:   this.data.currentBank,
+            pl: delta, pct: 0,
+            entries: 0, greens: 0, reds: 0,
+            isAdjustment: true,
+            isDay: false,
+            periods: []
+        };
+
+        // Merge into same date if exists, else insert
+        const existIdx = h.findIndex(s => s.date === date);
+        if (existIdx >= 0 && !h[existIdx].isAdjustment) {
+            h[existIdx].endBank = this.data.currentBank;
+            h[existIdx].pl      = h[existIdx].endBank - h[existIdx].startBank;
+            h[existIdx].pct     = h[existIdx].startBank > 0 ? (h[existIdx].pl / h[existIdx].startBank * 100) : 0;
+        }
+        h.unshift(adjRecord);
+        this.saveHistory(h);
+
+        // Clear fields and show feedback
+        document.getElementById('settings-adjust-val').value   = '';
+        document.getElementById('settings-adjust-reason').value = '';
+        if (fb) {
+            fb.innerText = `${type === 'aporte' ? '+' : '-'}${this.fmt(val)} registrado com sucesso.`;
+            fb.style.color = type === 'aporte' ? 'var(--green)' : 'var(--red)';
+            setTimeout(() => fb.innerText = '', 3000);
+        }
     },
 
     saveToStorage() {
@@ -2451,13 +2756,18 @@ const app = {
 
     renderSessionList(h) {
         const c = document.getElementById('session-list-container');
-        const days = this.groupByDay(h);
-        if (!days.length) {
+        // Separate adjustments from trading days
+        const adjustments = h.filter(s => s.isAdjustment);
+        const tradingDays  = this.groupByDay(h.filter(s => !s.isAdjustment));
+
+        if (!tradingDays.length && !adjustments.length) {
             c.innerHTML = '<div style="text-align:center;font-size:0.78rem;color:var(--muted);padding:20px 0;">Nenhuma sessão encerrada ainda.</div>';
             return;
         }
         c.innerHTML = '';
-        days.forEach(day => {
+
+        // Trading days
+        tradingDays.forEach(day => {
             const row = document.createElement('div');
             row.className = 'session-row';
             const plColor = day.totalPL >= 0 ? 'var(--green)' : 'var(--red)';
@@ -2475,6 +2785,30 @@ const app = {
             row.addEventListener('click', () => this.openDayDetail(day));
             c.appendChild(row);
         });
+
+        // Adjustments section
+        if (adjustments.length) {
+            const adjTitle = document.createElement('div');
+            adjTitle.style.cssText = 'font-size:0.62rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;';
+            adjTitle.innerText = 'Aportes & Saques';
+            c.appendChild(adjTitle);
+
+            adjustments.forEach(s => {
+                const row = document.createElement('div');
+                row.className = 'session-row';
+                row.style.borderLeft = `3px solid ${s.pl >= 0 ? 'var(--green)' : 'var(--red)'}`;
+                const sign = s.pl >= 0 ? '+' : '';
+                row.innerHTML = `
+                    <div>
+                        <div class="session-row-name">${s.icon} ${s.name}</div>
+                        <div class="session-row-date">${s.date}</div>
+                    </div>
+                    <div>
+                        <div class="session-row-pl" style="color:${s.pl>=0?'var(--green)':'var(--red)'}">${sign}${this.fmt(s.pl)}</div>
+                    </div>`;
+                c.appendChild(row);
+            });
+        }
     },
 
     openDayDetail(day) {
