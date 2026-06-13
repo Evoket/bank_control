@@ -789,14 +789,14 @@
 
         <div class="card">
             <div class="card-title">Nova Sessão</div>
-            <label>Nome da Sessão</label>
-            <div class="field-locked" id="wrap-day-name">
-                <input type="text" id="input-day-name" placeholder="Ex: Sessão Manhã">
+            <label>Nome da Banca</label>
+            <div id="wrap-day-name">
+                <input type="text" id="input-day-name" placeholder="Ex: Banca Goleada">
                 <span class="lock-badge hidden" id="lock-day-name">🔒</span>
             </div>
 
             <label>Banca Inicial (R$)</label>
-            <div class="field-locked" id="wrap-start-bank">
+            <div id="wrap-start-bank">
                 <input type="tel" id="input-start-bank" placeholder="R$0,00" oninput="app.maskCurrency(this)">
                 <span class="lock-badge hidden" id="lock-start-bank">🔒</span>
             </div>
@@ -806,7 +806,7 @@
             <label onclick="document.getElementById('input-commission').click()" style="cursor:pointer">
                 <div class="checkbox-wrapper" style="margin-bottom:0;">
                     <input type="checkbox" id="input-commission" checked>
-                    <span>Cobrar comissão (4% em Green)</span>
+                    <span>Cobrar comissão (4,5% em Green)</span>
                 </div>
             </label>
 
@@ -1433,7 +1433,7 @@
             <div class="settings-row">
                 <div>
                     <div class="settings-row-label">Cobrar Comissão</div>
-                    <div class="settings-row-sub">4% descontado nos Greens</div>
+                    <div class="settings-row-sub">4,5% descontado nos Greens</div>
                 </div>
                 <div class="toggle" id="toggle-commission" onclick="app.toggleCommission()"></div>
             </div>
@@ -1784,13 +1784,18 @@ const app = {
     // ─── UTILS ───
     maskCurrency(input) {
         let v = input.value.replace(/\D/g, '');
-        v = (Number(v) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        input.value = v;
+        if (!v) { input.value = ''; return; }
+        const num = Number(v) / 100;
+        input.value = 'R$' + num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     },
     getMoneyValue(id) {
         const el = typeof id === 'string' ? document.getElementById(id) : id;
         if (!el || !el.value) return 0;
-        return parseFloat(el.value.replace('R$','').replace(/\./g,'').replace(',','.').trim()) || 0;
+        const clean = el.value
+            .replace(/[R$\s\u00a0]/g, '')
+            .replace(/\./g, '')
+            .replace(',', '.');
+        return parseFloat(clean) || 0;
     },
     fmt(val) {
         const s = val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -1840,6 +1845,22 @@ const app = {
     // ─── INIT ───
     init() {
         this.applyTheme();
+        // Always reset home form fields to editable on load
+        ['input-day-name', 'input-start-bank'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.readOnly = false; el.value = ''; el.style.borderColor = ''; }
+        });
+        ['lock-day-name', 'lock-start-bank'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+        ['wrap-day-name', 'wrap-start-bank'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('field-locked');
+        });
+        const loadBtn = document.getElementById('btn-load-prev');
+        if (loadBtn) loadBtn.style.display = '';
+
         this.loadFromStorage();
         const el = document.getElementById('home-quote');
         if (el) el.innerText = this.randQuote(this.quotes);
@@ -1941,10 +1962,26 @@ const app = {
 
     // ─── SESSION ───
     startSession() {
-        const name = document.getElementById('input-day-name').value.trim();
-        const bank = this.getMoneyValue('input-start-bank');
-        const comm = document.getElementById('input-commission').checked;
-        if (!name || bank <= 0) return this.openModal('modal-campo-vazio');
+        const nameEl = document.getElementById('input-day-name');
+        const name   = (nameEl?.value || '').trim();
+        const bank   = this.getMoneyValue('input-start-bank');
+        const comm   = document.getElementById('input-commission')?.checked ?? true;
+
+        // Show specific feedback instead of generic modal
+        if (!name) {
+            nameEl.style.borderColor = 'var(--red)';
+            nameEl.focus();
+            setTimeout(() => nameEl.style.borderColor = '', 2000);
+            return;
+        }
+        if (bank <= 0) {
+            const bankEl = document.getElementById('input-start-bank');
+            bankEl.style.borderColor = 'var(--red)';
+            bankEl.focus();
+            setTimeout(() => bankEl.style.borderColor = '', 2000);
+            return;
+        }
+
         this.data = { ...this.data, dayName: name, startBank: bank, currentBank: bank, commissionActive: comm, stats: { entries: 0, greens: 0, reds: 0 }, operLog: [] };
         this.saveToStorage();
         this.updateHeader();
@@ -1958,15 +1995,18 @@ const app = {
 
         // Fill and LOCK bank value
         const bankEl = document.getElementById('input-start-bank');
-        bankEl.value = Math.round(parseFloat(lb) * 100).toString();
-        this.maskCurrency(bankEl);
+        const bankVal = Math.round(parseFloat(lb) * 100).toString();
+        bankEl.value = bankVal;
+        app.maskCurrency(bankEl);
         bankEl.readOnly = true;
+        document.getElementById('wrap-start-bank').classList.add('field-locked');
         document.getElementById('lock-start-bank').classList.remove('hidden');
 
         // Fill and LOCK session name
         const nameEl = document.getElementById('input-day-name');
         if (ln) nameEl.value = ln;
         nameEl.readOnly = true;
+        document.getElementById('wrap-day-name').classList.add('field-locked');
         document.getElementById('lock-day-name').classList.remove('hidden');
 
         // Hide the load button to avoid re-loading
@@ -1977,6 +2017,7 @@ const app = {
         const nameEl = document.getElementById('input-day-name');
         nameEl.readOnly = false;
         nameEl.focus();
+        document.getElementById('wrap-day-name').classList.remove('field-locked');
         document.getElementById('lock-day-name').classList.add('hidden');
         document.getElementById('unlock-name-row').style.display = 'none';
     },
@@ -2272,10 +2313,10 @@ const app = {
         const date   = this.getOperDate();
         // Live-record every operation into intraday log
         if (!this.data.operLog) this.data.operLog = [];
-        this.data.operLog.push({ type, val: type === 'GREEN' ? val * (this.data.commissionActive ? 0.96 : 1) : -val, date, period: period.key, time: now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) });
+        this.data.operLog.push({ type, val: type === 'GREEN' ? val * (this.data.commissionActive ? 0.955 : 1) : -val, date, period: period.key, time: now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) });
         if (type === 'GREEN') {
             this.data.stats.greens++;
-            if (this.data.commissionActive) val *= 0.96;
+            if (this.data.commissionActive) val *= 0.955;
             this.updateBank(val);
             document.getElementById('start-result-val').value = '';
             this.calcStartStake();
@@ -2375,12 +2416,12 @@ const app = {
         const now    = new Date();
         const period = this.getPeriod();
         const date   = this.getOperDate();
-        const netVal = type === 'GREEN' ? val * (this.data.commissionActive ? 0.96 : 1) : -val;
+        const netVal = type === 'GREEN' ? val * (this.data.commissionActive ? 0.955 : 1) : -val;
         if (!this.data.operLog) this.data.operLog = [];
         this.data.operLog.push({ type, val: netVal, date, period: period.key, time: now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }) });
         if (type === 'GREEN') {
             this.data.stats.greens++;
-            if (this.data.commissionActive) val *= 0.96;
+            if (this.data.commissionActive) val *= 0.955;
             this.updateBank(val);
             this.data.cyclePL += val;
         } else {
@@ -3326,7 +3367,7 @@ const app = {
             }
         }
 
-        if (this.data.commissionActive && type === 'GREEN') val *= 0.96;
+        if (this.data.commissionActive && type === 'GREEN') val *= 0.955;
 
         document.getElementById(inputId).value = '';
 
