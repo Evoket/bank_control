@@ -683,6 +683,36 @@
             padding-bottom: 16px; margin-bottom: 16px;
         }
         .settings-section:last-child { border-bottom: none; margin-bottom: 0; }
+
+        /* ─── DATA ACTION BUTTONS ─── */
+        .btn-data-action {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            text-align: left;
+            color: var(--text);
+            font-family: var(--sans);
+        }
+        .btn-data-action:hover {
+            border-color: rgba(91,138,245,0.35);
+            background: rgba(91,138,245,0.06);
+        }
+        .btn-data-action:active { opacity: 0.8; }
+        .btn-data-icon { font-size: 1.2rem; flex-shrink: 0; }
+        .btn-data-text { flex: 1; }
+        .btn-data-label { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+        .btn-data-sub { font-size: 0.67rem; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+        .btn-data-arrow { font-size: 1.1rem; color: var(--muted); flex-shrink: 0; line-height: 1; }
+        .btn-data-danger .btn-data-label { color: var(--red); }
+        .btn-data-danger { border-color: rgba(245,91,91,0.15); }
+        .btn-data-danger:hover { border-color: rgba(245,91,91,0.35); background: rgba(245,91,91,0.06); }
         .settings-section-title {
             font-size: 0.62rem; font-weight: 800; letter-spacing: 0.14em;
             text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
@@ -1008,16 +1038,16 @@
                 <div class="odd-rec-row">
                     <div>
                         <div class="odd-range">ODD 1.06 – 1.09</div>
-                        <div class="odd-pct">20% da Stake</div>
+                        <div class="odd-pct">25% da Stake</div>
                     </div>
-                    <div class="odd-value" style="color: var(--accent)" id="rec-val-20">R$0,00</div>
+                    <div class="odd-value" style="color: var(--accent)" id="rec-val-25">R$0,00</div>
                 </div>
                 <div class="odd-rec-row">
                     <div>
                         <div class="odd-range">ODD 1.10+</div>
-                        <div class="odd-pct">10% da Stake</div>
+                        <div class="odd-pct">20% da Stake</div>
                     </div>
-                    <div class="odd-value" style="color: var(--muted)" id="rec-val-10">R$0,00</div>
+                    <div class="odd-value" style="color: var(--muted)" id="rec-val-20">R$0,00</div>
                 </div>
             </div>
         </div>
@@ -1105,7 +1135,7 @@
                 <div style="display:flex;align-items:center;gap:8px;">
                     <div class="lev-status-dot" style="width:8px;height:8px;background:var(--muted);border-radius:50%;"></div>
                     <div class="op-card-num">Recuperação</div>
-                    <span class="lev-lock-badge" style="font-size:0.6rem;background:var(--surface2);border:1px solid rgba(255,255,255,0.07);color:var(--muted);padding:1px 7px;border-radius:99px;font-weight:700;">BLOQUEADO</span>
+                    <span class="lev-lock-badge" style="font-size:0.6rem;background:var(--surface2);border:1px solid rgba(255,255,255,0.07);color:var(--muted);padding:1px 7px;border-radius:99px;font-weight:700;display:none;">BLOQUEADO</span>
                 </div>
                 <div class="op-card-entry" id="lev-entry2-val" style="color:var(--muted);">—</div>
             </div>
@@ -1456,10 +1486,40 @@
             <div id="settings-adjust-feedback" style="margin-top:10px; font-size:0.72rem; text-align:center; min-height:18px;"></div>
         </div>
 
-        <!-- Reset -->
+        <!-- Dados -->
         <div class="settings-section">
-            <div class="settings-section-title">Dados</div>
-            <button class="btn-red btn-sm" onclick="app.closeModal('modal-settings'); app.confirmResetHistory();" style="margin:0; font-size:0.72rem; width:100%;">🗑 Apagar Histórico Geral</button>
+            <div class="settings-section-title">📂 Dados</div>
+            <div style="font-size:0.7rem; color:var(--muted); margin-bottom:14px; line-height:1.5;">Backup, restauração e gestão dos seus registros.</div>
+
+            <button class="btn-data-action" onclick="app.exportData()">
+                <span class="btn-data-icon">📤</span>
+                <div class="btn-data-text">
+                    <div class="btn-data-label">Exportar Dados</div>
+                    <div class="btn-data-sub">Salva sessões, histórico, estatísticas e configurações em JSON</div>
+                </div>
+                <span class="btn-data-arrow">›</span>
+            </button>
+
+            <button class="btn-data-action" onclick="app.importData()" style="margin-top:8px;">
+                <span class="btn-data-icon">📥</span>
+                <div class="btn-data-text">
+                    <div class="btn-data-label">Importar Dados</div>
+                    <div class="btn-data-sub">Restaura backup exportado anteriormente</div>
+                </div>
+                <span class="btn-data-arrow">›</span>
+            </button>
+            <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="app.handleImportFile(event)">
+
+            <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+
+            <button class="btn-data-action btn-data-danger" onclick="app.closeModal('modal-settings'); app.confirmResetHistory();">
+                <span class="btn-data-icon">🗑</span>
+                <div class="btn-data-text">
+                    <div class="btn-data-label">Apagar Histórico Geral</div>
+                    <div class="btn-data-sub">Remove permanentemente todo o histórico de operações e sessões</div>
+                </div>
+                <span class="btn-data-arrow">›</span>
+            </button>
         </div>
 
         <button class="btn-outline" onclick="app.closeModal('modal-settings')" style="margin-top:4px;">Fechar</button>
@@ -1600,12 +1660,16 @@
 <div id="modal-reset-confirm" class="modal-overlay hidden" onclick="if(event.target===this)app.closeModal('modal-reset-confirm')">
     <div class="modal-box" style="text-align:center;">
         <div class="modal-handle"></div>
-        <div style="font-size:2rem;margin-bottom:8px;">⚠️</div>
-        <div class="modal-title" style="color:var(--red);">Apagar Histórico?</div>
-        <div class="modal-body">Esta ação é irreversível. Todo o histórico de sessões e estatísticas acumuladas serão apagados permanentemente.</div>
-        <div class="modal-actions" style="margin-top:16px;">
-            <button class="btn-red" onclick="app.resetHistory()">Sim, apagar tudo</button>
+        <div style="font-size:2.2rem;margin-bottom:10px;">⚠️</div>
+        <div class="modal-title" style="color:var(--red); font-size:1rem; text-transform:uppercase; letter-spacing:0.08em;">ATENÇÃO</div>
+        <div class="modal-body" style="margin-top:10px; line-height:1.65;">
+            Esta ação removerá <strong>permanentemente</strong> todo o histórico de operações, sessões e estatísticas.<br><br>
+            <span style="color:var(--muted); font-size:0.78rem;">Esta ação não pode ser desfeita.</span>
+        </div>
+        <div style="font-size:0.72rem; color:var(--muted); margin:12px 0 0;">Deseja continuar?</div>
+        <div class="modal-actions" style="margin-top:14px;">
             <button class="btn-outline" onclick="app.closeModal('modal-reset-confirm')" style="margin:0;">Cancelar</button>
+            <button class="btn-red" onclick="app.resetHistory()">🗑 Apagar Tudo</button>
         </div>
     </div>
 </div>
@@ -2269,11 +2333,11 @@ const app = {
     updateRecommendedValues() {
         const s = this.data.currentBaseStake;
         const r30 = document.getElementById('rec-val-30');
+        const r25 = document.getElementById('rec-val-25');
         const r20 = document.getElementById('rec-val-20');
-        const r10 = document.getElementById('rec-val-10');
         if (r30) r30.innerText = this.fmt(s * 0.30);
+        if (r25) r25.innerText = this.fmt(s * 0.25);
         if (r20) r20.innerText = this.fmt(s * 0.20);
-        if (r10) r10.innerText = this.fmt(s * 0.10);
     },
     // Redução gradual: 2 ops = 100%, cada op adicional reduz 5%
     c2Multiplier(n) {
@@ -3124,7 +3188,92 @@ const app = {
         this.openModal('modal-session-detail');
     },
 
-    confirmResetHistory() { this.openModal('modal-reset-confirm'); },
+    // ─── EXPORT DATA ───
+    exportData() {
+        const ts = new Date().toISOString().slice(0,19).replace('T','_').replace(/:/g,'-');
+        const payload = {
+            _meta: { app: 'EvoketBankControl', version: '3.0', exportedAt: new Date().toISOString() },
+            session:      JSON.parse(localStorage.getItem('evoket_session')    || 'null'),
+            history:      JSON.parse(localStorage.getItem('evoket_history')    || '[]'),
+            lifetime:     JSON.parse(localStorage.getItem('evoket_lifetime')   || '{}'),
+            cycleState:   JSON.parse(localStorage.getItem('evoket_cycle_state')|| 'null'),
+            levHistory:   JSON.parse(localStorage.getItem('evoket_lev_history')|| '[]'),
+            theme:        localStorage.getItem('evoket_theme') || 'dark',
+            lastBank:     localStorage.getItem('evoket_last_bank') || null,
+            lastName:     localStorage.getItem('evoket_last_name') || null,
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `evoket_backup_${ts}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        // feedback toast
+        this._toast('📤 Backup exportado com sucesso!', 'green');
+    },
+
+    importData() {
+        document.getElementById('import-file-input').value = '';
+        document.getElementById('import-file-input').click();
+    },
+
+    handleImportFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (!data._meta || data._meta.app !== 'EvoketBankControl') {
+                    this._toast('❌ Arquivo inválido ou incompatível.', 'red');
+                    return;
+                }
+                if (data.session)    localStorage.setItem('evoket_session',     JSON.stringify(data.session));
+                if (data.history)    localStorage.setItem('evoket_history',     JSON.stringify(data.history));
+                if (data.lifetime)   localStorage.setItem('evoket_lifetime',    JSON.stringify(data.lifetime));
+                if (data.cycleState) localStorage.setItem('evoket_cycle_state', JSON.stringify(data.cycleState));
+                if (data.levHistory) localStorage.setItem('evoket_lev_history', JSON.stringify(data.levHistory));
+                if (data.theme)      localStorage.setItem('evoket_theme',       data.theme);
+                if (data.lastBank)   localStorage.setItem('evoket_last_bank',   data.lastBank);
+                if (data.lastName)   localStorage.setItem('evoket_last_name',   data.lastName);
+                this.closeModal('modal-settings');
+                this._toast('📥 Dados importados com sucesso.', 'green');
+                setTimeout(() => location.reload(), 1200);
+            } catch(err) {
+                this._toast('❌ Erro ao ler o arquivo. Verifique se é um backup válido.', 'red');
+            }
+        };
+        reader.readAsText(file);
+    },
+
+    _toast(msg, type) {
+        let t = document.getElementById('evoket-toast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'evoket-toast';
+            t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);' +
+                'background:var(--surface2);border:1px solid var(--border);border-radius:99px;' +
+                'padding:10px 20px;font-size:0.78rem;font-family:var(--sans);font-weight:700;' +
+                'z-index:9999;opacity:0;transition:opacity 0.25s,transform 0.25s;pointer-events:none;' +
+                'white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4);';
+            document.body.appendChild(t);
+        }
+        t.innerText = msg;
+        t.style.borderColor = type === 'green' ? 'rgba(16,217,160,0.3)' : 'rgba(245,91,91,0.3)';
+        t.style.color       = type === 'green' ? 'var(--green)' : 'var(--red)';
+        requestAnimationFrame(() => {
+            t.style.opacity   = '1';
+            t.style.transform = 'translateX(-50%) translateY(0)';
+        });
+        clearTimeout(t._timer);
+        t._timer = setTimeout(() => {
+            t.style.opacity   = '0';
+            t.style.transform = 'translateX(-50%) translateY(12px)';
+        }, 3000);
+    },
+
+        confirmResetHistory() { this.openModal('modal-reset-confirm'); },
 
     resetHistory() {
         localStorage.removeItem('evoket_history');
@@ -3335,7 +3484,7 @@ const app = {
             if (btn2r)    btn2r.disabled = false;
             if (entry2El) entry2El.innerText = this.fmt(frozenVal);
             if (entry2El) entry2El.style.color = 'var(--red)';
-            if (lockBadge) { lockBadge.innerText = 'LIBERADO'; lockBadge.style.color = 'var(--red)'; lockBadge.style.borderColor = 'rgba(245,91,91,0.4)'; lockBadge.style.background = 'rgba(245,91,91,0.08)'; }
+            if (lockBadge) { lockBadge.style.display = ''; lockBadge.innerText = 'LIBERADO'; lockBadge.style.color = 'var(--red)'; lockBadge.style.borderColor = 'rgba(245,91,91,0.4)'; lockBadge.style.background = 'rgba(245,91,91,0.08)'; }
             if (dot2) dot2.style.background = 'var(--red)';
         } else {
             // Card 2 LOCKED — show cycle value (frozen)
@@ -3347,7 +3496,7 @@ const app = {
             if (btn2r)    btn2r.disabled = true;
             if (entry2El) entry2El.innerText = this.fmt(lev.cycleEntry2 || bank * 0.80);
             if (entry2El) entry2El.style.color = 'var(--muted)';
-            if (lockBadge) { lockBadge.innerText = 'BLOQUEADO'; lockBadge.style.color = 'var(--muted)'; lockBadge.style.borderColor = 'rgba(255,255,255,0.07)'; lockBadge.style.background = 'var(--surface2)'; }
+            if (lockBadge) { lockBadge.style.display = 'none'; }
             if (dot2) dot2.style.background = 'var(--muted)';
         }
     },
